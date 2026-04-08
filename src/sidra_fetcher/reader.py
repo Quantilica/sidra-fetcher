@@ -56,6 +56,7 @@ from .agregados import (
     Pesquisa,
     Variavel,
 )
+from .periodos import parse_period, parse_ddmmyyyy
 
 
 class DateEncoder(json.JSONEncoder):
@@ -434,13 +435,15 @@ def read_periodos(data: list[dict[str, Any]]) -> list[Periodo]:
     """Parse raw periods data into a list of Periodo dataclass instances.
 
     This function converts the raw period information returned by the IBGE
-    agregados periods endpoint into typed :class:`Periodo` objects. It handles
-    the date parsing, converting the modification date string from Brazilian
-    format (dd/mm/yyyy) to a Python date object.
+    agregados periods endpoint into typed :class:`Periodo` objects with
+    enriched temporal metadata. It handles date parsing, temporal feature
+    extraction (frequency, start/end dates, temporal components), and converts
+    the modification date string from Brazilian format (dd/mm/yyyy) to a Python
+    date object.
 
     Each period represents a time point or range for which data is available
     in the aggregate, along with metadata about when that period's data was
-    last updated.
+    last updated and its temporal structure.
 
     Args:
         data: A list of period dictionaries from the IBGE API, each containing:
@@ -450,9 +453,11 @@ def read_periodos(data: list[dict[str, Any]]) -> list[Periodo]:
 
     Returns:
         list[Periodo]: A list of Periodo instances with:
-            - id: Period identifier string
-            - literals: List of display strings for the period
-            - modificacao: Modification date as datetime.date object
+            - id, literals, modificacao (as per basic parsing)
+            - frequencia: Detected frequency type (monthly, quarterly, etc.)
+            - data_inicio: Computed start datetime
+            - data_fim: Computed end datetime
+            - ano, mes, trimestre, semestre, ano_fim: Extracted components
 
     Example:
         >>> raw_periods = client.get_agregado_periodos(1705)
@@ -463,17 +468,33 @@ def read_periodos(data: list[dict[str, Any]]) -> list[Periodo]:
         ['dezembro 2023', '12/2023']
         >>> print(periodos[0].modificacao)
         datetime.date(2024, 1, 15)
+        >>> print(periodos[0].frequencia)
+        'monthly'
+        >>> print(periodos[0].ano, periodos[0].mes)
+        2023 12
     """
-    return [
-        Periodo(
+    result = []
+    for periodo in data:
+        # Parse enriched temporal metadata
+        parsed = parse_period(periodo)
+
+        # Create Periodo with enriched fields
+        p = Periodo(
             id=periodo["id"],
             literals=periodo["literals"],
-            modificacao=dt.datetime.strptime(
-                periodo["modificacao"], "%d/%m/%Y"
-            ).date(),
+            modificacao=parse_ddmmyyyy(periodo["modificacao"]),
+            frequencia=parsed.get("frequencia"),
+            data_inicio=parsed.get("data_inicio"),
+            data_fim=parsed.get("data_fim"),
+            ano=parsed.get("ano"),
+            mes=parsed.get("mes"),
+            trimestre=parsed.get("trimestre"),
+            semestre=parsed.get("semestre"),
+            ano_fim=parsed.get("ano_fim"),
         )
-        for periodo in data
-    ]
+        result.append(p)
+
+    return result
 
 
 def read_localidades(data: list[dict[str, Any]]) -> list[Localidade]:

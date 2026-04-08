@@ -41,11 +41,30 @@ class Periodo:
         id: Period identifier as provided by the API.
         literals: Human readable representations for the period.
         modificacao: Date when the period was last modified.
+        frequencia: Detected frequency type (e.g., 'monthly', 'quarterly').
+            Optional; populated by temporal parsing.
+        data_inicio: Computed start datetime of the period.
+            Optional; populated by temporal parsing.
+        data_fim: Computed end datetime of the period.
+            Optional; populated by temporal parsing.
+        ano: Extracted year component. Optional; populated by temporal parsing.
+        mes: Extracted month component (1-12). Optional.
+        trimestre: Extracted quarter component (1-4). Optional.
+        semestre: Extracted semester component (1-2). Optional.
+        ano_fim: End year for multi-year periods. Optional.
     """
 
     id: str
     literals: list[str]
     modificacao: dt.date
+    frequencia: str | None = None
+    data_inicio: dt.datetime | None = None
+    data_fim: dt.datetime | None = None
+    ano: int | None = None
+    mes: int | None = None
+    trimestre: int | None = None
+    semestre: int | None = None
+    ano_fim: int | None = None
 
 
 @dataclass
