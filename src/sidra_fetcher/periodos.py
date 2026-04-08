@@ -149,7 +149,7 @@ def parse_period(periodo: dict[str, str]):
         }
 
         start_month = quarter_start_months[quarter_name]
-        start_date = dt.datetime(year, start_month, 1)
+        start_date = dt.datetime(year, start_month, 1).date()
         end_date = _add_months(start_date, 3) - dt.timedelta(days=1)
         end_month = end_date.month
 
@@ -170,7 +170,7 @@ def parse_period(periodo: dict[str, str]):
         year = int(m.group(3))
         month = MONTHS_DICT[month_name]
 
-        start_date = dt.datetime(year, month, 1)
+        start_date = dt.datetime(year, month, 1).date()
         end_date = _add_months(start_date, 1) - dt.timedelta(days=1)
 
         return {
@@ -180,7 +180,7 @@ def parse_period(periodo: dict[str, str]):
             "data_inicio": start_date,
             "data_fim": end_date,
             "ano": year,
-            "mes":month,
+            "mes": month,
         }
 
     # Try to match quarters
@@ -190,7 +190,7 @@ def parse_period(periodo: dict[str, str]):
         year = int(m.group(3))
 
         start_month = (quarter - 1) * 3 + 1
-        start_date = dt.datetime(year, start_month, 1)
+        start_date = dt.datetime(year, start_month, 1).date()
         end_date = _add_months(start_date, 3) - dt.timedelta(days=1)
 
         return {
@@ -210,7 +210,7 @@ def parse_period(periodo: dict[str, str]):
         year = int(m.group(3))
 
         start_month = (semester - 1) * 6 + 1
-        start_date = dt.datetime(year, start_month, 1)
+        start_date = dt.datetime(year, start_month, 1).date()
         end_date = _add_months(start_date, 6) - dt.timedelta(days=1)
 
         return {
@@ -229,8 +229,8 @@ def parse_period(periodo: dict[str, str]):
         year = int(m.group(1))
         end_year = int(m.group(2)) if m.group(2) else year
 
-        start_date = dt.datetime(year, 1, 1)
-        end_date = dt.datetime(end_year, 12, 31)
+        start_date = dt.datetime(year, 1, 1).date()
+        end_date = dt.datetime(end_year, 12, 31).date()
 
         frequency = (
             FREQUENCIA_ANUAL if year == end_year else FREQUENCIA_PLURIANUAL
@@ -256,6 +256,8 @@ def parse_period(periodo: dict[str, str]):
     }
 
 
-def parse_ddmmyyyy(date_str: str) -> dt.date:
-    """Parse 'DD/MM/YYYY' date strings to date."""
-    return dt.datetime.strptime(date_str, "%d/%m/%Y").date()
+def parse_date(date_str: str) -> dt.date:
+    """Parse 'DD/MM/YYYY' or 'YYYY-MM-DD' date strings to date."""
+    if "/" in date_str:
+        return dt.datetime.strptime(date_str, "%d/%m/%Y").date()
+    return dt.date.fromisoformat(date_str)

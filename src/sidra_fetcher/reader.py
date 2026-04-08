@@ -56,7 +56,7 @@ from .agregados import (
     Pesquisa,
     Variavel,
 )
-from .periodos import parse_period, parse_ddmmyyyy
+from .periodos import parse_period, parse_date
 
 
 class DateEncoder(json.JSONEncoder):
@@ -482,7 +482,7 @@ def read_periodos(data: list[dict[str, Any]]) -> list[Periodo]:
         p = Periodo(
             id=periodo["id"],
             literals=periodo["literals"],
-            modificacao=parse_ddmmyyyy(periodo["modificacao"]),
+            modificacao=parse_date(periodo["modificacao"]),
             frequencia=parsed.get("frequencia"),
             data_inicio=parsed.get("data_inicio"),
             data_fim=parsed.get("data_fim"),
@@ -594,21 +594,7 @@ def load_agregado(path: str | Path) -> Agregado:
             )
         )
 
-    periodos = []
-    for p in data.get("periodos", []):
-        modificacao_str = p["modificacao"]
-        try:
-            modificacao = dt.date.fromisoformat(modificacao_str)
-        except ValueError:
-            modificacao = dt.datetime.strptime(modificacao_str, "%d/%m/%Y")
-            modificacao = modificacao.date()
-        periodos.append(
-            Periodo(
-                id=p["id"],
-                literals=p["literals"],
-                modificacao=modificacao,
-            )
-        )
+    periodos = read_periodos(data.get("periodos", []))
 
     localidades = []
     for loc in data.get("localidades", []):

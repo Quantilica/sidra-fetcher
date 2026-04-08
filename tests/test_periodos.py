@@ -17,7 +17,7 @@ import unittest
 
 from sidra_fetcher.agregados import Periodo
 from sidra_fetcher.periodos import (
-    parse_ddmmyyyy,
+    parse_date,
     parse_period,
     FREQUENCIA_MENSAL,
 )
@@ -39,8 +39,8 @@ class TestPeriodoParsing(unittest.TestCase):
         self.assertEqual(result["frequencia"], "mensal")
         self.assertEqual(result["ano"], 2023)
         self.assertEqual(result["mes"], 1)
-        self.assertEqual(result["data_inicio"], dt.datetime(2023, 1, 1))
-        self.assertEqual(result["data_fim"], dt.datetime(2023, 1, 31))
+        self.assertEqual(result["data_inicio"], dt.date(2023, 1, 1))
+        self.assertEqual(result["data_fim"], dt.date(2023, 1, 31))
 
     def test_parse_quarterly_period(self):
         """Test parsing a quarterly period."""
@@ -53,8 +53,8 @@ class TestPeriodoParsing(unittest.TestCase):
         self.assertEqual(result["frequencia"], "trimestral")
         self.assertEqual(result["trimestre"], 2)
         self.assertEqual(result["ano"], 2023)
-        self.assertEqual(result["data_inicio"], dt.datetime(2023, 4, 1))
-        self.assertEqual(result["data_fim"], dt.datetime(2023, 6, 30))
+        self.assertEqual(result["data_inicio"], dt.date(2023, 4, 1))
+        self.assertEqual(result["data_fim"], dt.date(2023, 6, 30))
 
     def test_parse_rolling_quarter_period(self):
         """Test parsing a rolling quarter period."""
@@ -66,8 +66,8 @@ class TestPeriodoParsing(unittest.TestCase):
 
         self.assertEqual(result["frequencia"], "trimestre_movel")
         self.assertEqual(result["ano"], 2023)
-        self.assertEqual(result["data_inicio"], dt.datetime(2023, 1, 1))
-        self.assertEqual(result["data_fim"], dt.datetime(2023, 3, 31))
+        self.assertEqual(result["data_inicio"], dt.date(2023, 1, 1))
+        self.assertEqual(result["data_fim"], dt.date(2023, 3, 31))
 
     def test_parse_semiannual_period(self):
         """Test parsing a semiannual period."""
@@ -80,8 +80,8 @@ class TestPeriodoParsing(unittest.TestCase):
         self.assertEqual(result["frequencia"], "semestral")
         self.assertEqual(result["semestre"], 1)
         self.assertEqual(result["ano"], 2023)
-        self.assertEqual(result["data_inicio"], dt.datetime(2023, 1, 1))
-        self.assertEqual(result["data_fim"], dt.datetime(2023, 6, 30))
+        self.assertEqual(result["data_inicio"], dt.date(2023, 1, 1))
+        self.assertEqual(result["data_fim"], dt.date(2023, 6, 30))
 
     def test_parse_annual_period(self):
         """Test parsing an annual period."""
@@ -94,8 +94,8 @@ class TestPeriodoParsing(unittest.TestCase):
         self.assertEqual(result["frequencia"], "anual")
         self.assertEqual(result["ano"], 2023)
         self.assertIsNone(result["ano_fim"])
-        self.assertEqual(result["data_inicio"], dt.datetime(2023, 1, 1))
-        self.assertEqual(result["data_fim"], dt.datetime(2023, 12, 31))
+        self.assertEqual(result["data_inicio"], dt.date(2023, 1, 1))
+        self.assertEqual(result["data_fim"], dt.date(2023, 12, 31))
 
     def test_parse_multi_annual_period(self):
         """Test parsing a multi-annual period."""
@@ -108,8 +108,8 @@ class TestPeriodoParsing(unittest.TestCase):
         self.assertEqual(result["frequencia"], "plurianual")
         self.assertEqual(result["ano"], 2020)
         self.assertEqual(result["ano_fim"], 2023)
-        self.assertEqual(result["data_inicio"], dt.datetime(2020, 1, 1))
-        self.assertEqual(result["data_fim"], dt.datetime(2023, 12, 31))
+        self.assertEqual(result["data_inicio"], dt.date(2020, 1, 1))
+        self.assertEqual(result["data_fim"], dt.date(2023, 12, 31))
 
     def test_parse_unrecognized_period(self):
         """Test parsing an unrecognized period format."""
@@ -149,9 +149,13 @@ class TestPeriodoParsing(unittest.TestCase):
 class TestDateParsing(unittest.TestCase):
     """Test suite for date parsing utilities."""
 
-    def test_parse_ddmmyyyy(self):
-        """Test parsing DD/MM/YYYY date strings."""
-        result = parse_ddmmyyyy("15/01/2023")
+    def test_parse_date(self):
+        """Test parsing date strings."""
+        result = parse_date("15/01/2023")
+        expected = dt.date(2023, 1, 15)
+        self.assertEqual(result, expected)
+
+        result = parse_date("2023-01-15")
         expected = dt.date(2023, 1, 15)
         self.assertEqual(result, expected)
 
@@ -179,8 +183,8 @@ class TestReaderPeriodos(unittest.TestCase):
         self.assertEqual(p.frequencia, "mensal")
         self.assertEqual(p.ano, 2023)
         self.assertEqual(p.mes, 1)
-        self.assertEqual(p.data_inicio, dt.datetime(2023, 1, 1))
-        self.assertEqual(p.data_fim, dt.datetime(2023, 1, 31))
+        self.assertEqual(p.data_inicio, dt.date(2023, 1, 1))
+        self.assertEqual(p.data_fim, dt.date(2023, 1, 31))
 
     def test_read_periodos_multiple(self):
         """Test reading multiple periods."""
