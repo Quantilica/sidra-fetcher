@@ -57,6 +57,7 @@ from .agregados import (
     build_url_metadados,
     build_url_periodos,
 )
+from .reader import read_periodos
 
 
 class SidraClient:
@@ -202,18 +203,9 @@ class SidraClient:
         """
         url_periodos = build_url_periodos(agregado_id)
         logger.info(f"Downloading agregado periodos {url_periodos}")
-        data = self.get(url_periodos)
-        data = [
-            Periodo(
-                id=periodo["id"],
-                literals=periodo["literals"],
-                modificacao=dt.datetime.strptime(
-                    periodo["modificacao"], "%d/%m/%Y"
-                ).date(),
-            )
-            for periodo in data
-        ]
-        return data
+        raw_data = self.get(url_periodos)
+        parsed_data = read_periodos(raw_data)
+        return parsed_data
 
     def get_agregado_localidades(
         self, agregado_id: int, localidades_nivel: str
@@ -428,18 +420,14 @@ class AsyncSidraClient:
         """Fetch available periods for an aggregate."""
         url_periodos = build_url_periodos(agregado_id)
         logger.info(f"Downloading agregado periodos {url_periodos}")
-        data = await self.get(url_periodos)
-        return [
-            Periodo(
-                id=periodo["id"],
-                literals=periodo["literals"],
-                modificacao=dt.datetime.strptime(
-                    periodo["modificacao"], "%d/%m/%Y"
-                ).date(),
-            )
-            for periodo in data
-        ]
+        raw_data = await self.get(url_periodos)
+        parsed_data = read_periodos(raw_data)
+        return parsed_data
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=3, max=30),
+    )
     async def get_agregado_localidades(
         self, agregado_id: int, localidades_nivel: str
     ) -> list[Localidade]:
