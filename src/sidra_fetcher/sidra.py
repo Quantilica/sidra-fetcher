@@ -87,6 +87,7 @@ class Parametro:
         formato: Output format (see :class:`Formato`).
         decimais: Dict mapping variable keys to :class:`Precisao` values.
     """
+
     # Agregado
     agregado: str
     # 1 => /t/1

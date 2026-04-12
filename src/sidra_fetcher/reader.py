@@ -56,7 +56,7 @@ from .agregados import (
     Pesquisa,
     Variavel,
 )
-from .periodos import parse_period, parse_date
+from .periodos import parse_date, parse_period
 
 
 class DateEncoder(json.JSONEncoder):

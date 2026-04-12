@@ -200,7 +200,7 @@ def parse_period(periodo: dict[str, str]):
             "data_inicio": start_date,
             "data_fim": end_date,
             "ano": year,
-            "trimestre":quarter,
+            "trimestre": quarter,
         }
 
     # Try to match semesters
@@ -220,7 +220,7 @@ def parse_period(periodo: dict[str, str]):
             "data_inicio": start_date,
             "data_fim": end_date,
             "ano": year,
-            "semestre":semester,
+            "semestre": semester,
         }
 
     # Try to match years
@@ -243,7 +243,7 @@ def parse_period(periodo: dict[str, str]):
             "data_inicio": start_date,
             "data_fim": end_date,
             "ano": year,
-            "ano_fim":end_year if year != end_year else None,
+            "ano_fim": end_year if year != end_year else None,
         }
 
     # If no pattern matches, mark as unrecognized

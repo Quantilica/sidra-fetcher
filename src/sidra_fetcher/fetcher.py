@@ -25,7 +25,6 @@ typed structures suitable for further processing by the package.
 """
 
 import asyncio
-import datetime as dt
 import json
 import time
 from typing import Any
@@ -67,6 +66,7 @@ class SidraClient:
     metadata, periods and localidades and to build higher level
     aggregate objects from the API responses.
     """
+
     def __init__(self, timeout: int = 60) -> None:
         self.client = httpx.Client(timeout=timeout, follow_redirects=True)
 
@@ -338,7 +338,9 @@ class AsyncSidraClient:
         return json.loads(data.decode("utf-8"))
 
     @retry(stop=stop_after_attempt(3))
-    async def get_indice_pesquisas_agregados(self) -> list[IndicePesquisaAgregados]:
+    async def get_indice_pesquisas_agregados(
+        self,
+    ) -> list[IndicePesquisaAgregados]:
         """Fetch the index of agregados grouped by pesquisa."""
         url_agregados = build_url_agregados()
         logger.info(f"Downloading list of agregados metadata {url_agregados}")
@@ -465,7 +467,10 @@ class AsyncSidraClient:
             + agregado_metadados.nivel_territorial.ibge
         )
         localidades_lists = await asyncio.gather(
-            *(self.get_agregado_localidades(agregado_id, nivel) for nivel in niveis)
+            *(
+                self.get_agregado_localidades(agregado_id, nivel)
+                for nivel in niveis
+            )
         )
         agregado_localidades: list[Localidade] = [
             loc for locs in localidades_lists for loc in locs

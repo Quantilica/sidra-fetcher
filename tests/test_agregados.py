@@ -30,7 +30,9 @@ class TestAgregados(unittest.TestCase):
         agregado_id = 1705
         localidades_nivel = "N1"
         expected = f"{BASE_URL}/{agregado_id}/localidades/{localidades_nivel}"
-        self.assertEqual(build_url_localidades(agregado_id, localidades_nivel), expected)
+        self.assertEqual(
+            build_url_localidades(agregado_id, localidades_nivel), expected
+        )
 
     def test_build_url_acervos(self):
         # Test for each enum value

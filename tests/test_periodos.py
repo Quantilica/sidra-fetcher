@@ -17,9 +17,9 @@ import unittest
 
 from sidra_fetcher.agregados import Periodo
 from sidra_fetcher.periodos import (
+    FREQUENCIA_MENSAL,
     parse_date,
     parse_period,
-    FREQUENCIA_MENSAL,
 )
 from sidra_fetcher.reader import read_periodos
 
