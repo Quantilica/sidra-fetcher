@@ -1,6 +1,6 @@
 # sidra-fetcher
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **sidra-fetcher** is a Python library for fetching and processing data and metadata from [IBGE](https://www.ibge.gov.br/)'s official APIs — [Agregados v3](https://servicodados.ibge.gov.br/api/docs/agregados?versao=3) and [SIDRA](https://apisidra.ibge.gov.br). It provides typed, dataclass-based access to surveys, aggregates, periods, territorial levels, variables, and classifications.
 
@@ -437,4 +437,4 @@ uv run python -m unittest discover -v tests
 
 ## License
 
-GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
+MIT. See [LICENSE](LICENSE) for details.

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Komesu, D.K.
+# Licensed under the MIT License.
+
 import unittest
 
 from sidra_fetcher.sidra import (
