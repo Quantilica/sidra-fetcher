@@ -6,7 +6,13 @@ import unittest
 
 from sidra_fetcher.agregados import Periodo
 from sidra_fetcher.periodos import (
+    FREQUENCIA_ANUAL,
     FREQUENCIA_MENSAL,
+    FREQUENCIA_PLURIANUAL,
+    FREQUENCIA_SEMESTRAL,
+    FREQUENCIA_TRIMESTRAL,
+    FREQUENCIA_TRIMESTRE_MOVEL,
+    expected_periodo_frequencias,
     parse_date,
     parse_period,
 )
@@ -211,6 +217,56 @@ class TestReaderPeriodos(unittest.TestCase):
         self.assertEqual(p.ano, 2023)
         self.assertEqual(p.mes, 1)
         self.assertEqual(p.data_inicio, dt.datetime(2023, 1, 1))
+
+
+class TestExpectedPeriodoFrequencias(unittest.TestCase):
+    def test_mensal(self):
+        self.assertEqual(
+            expected_periodo_frequencias("mensal"), {FREQUENCIA_MENSAL}
+        )
+
+    def test_trimestral(self):
+        self.assertEqual(
+            expected_periodo_frequencias("trimestral"), {FREQUENCIA_TRIMESTRAL}
+        )
+
+    def test_trimestral_movel(self):
+        self.assertEqual(
+            expected_periodo_frequencias("trimestral móvel"),
+            {FREQUENCIA_TRIMESTRE_MOVEL},
+        )
+
+    def test_semestral(self):
+        self.assertEqual(
+            expected_periodo_frequencias("semestral"), {FREQUENCIA_SEMESTRAL}
+        )
+
+    def test_anual_includes_plurianual(self):
+        self.assertEqual(
+            expected_periodo_frequencias("anual"),
+            {FREQUENCIA_ANUAL, FREQUENCIA_PLURIANUAL},
+        )
+
+    def test_decenal_includes_plurianual(self):
+        self.assertEqual(
+            expected_periodo_frequencias("decenal"),
+            {FREQUENCIA_ANUAL, FREQUENCIA_PLURIANUAL},
+        )
+
+    def test_none_returns_empty(self):
+        self.assertEqual(expected_periodo_frequencias(None), set())
+
+    def test_empty_string_returns_empty(self):
+        self.assertEqual(expected_periodo_frequencias(""), set())
+
+    def test_unknown_returns_empty(self):
+        self.assertEqual(expected_periodo_frequencias("quinzenal"), set())
+
+    def test_case_and_whitespace_insensitive(self):
+        self.assertEqual(
+            expected_periodo_frequencias("  Trimestral Móvel "),
+            {FREQUENCIA_TRIMESTRE_MOVEL},
+        )
 
 
 if __name__ == "__main__":

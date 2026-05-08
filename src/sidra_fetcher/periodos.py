@@ -57,6 +57,33 @@ FREQUENCIA_PLURIANUAL = "plurianual"
 FREQUENCIA_NAO_RECONHECIDA = "nao_reconhecida"
 
 
+# Maps an IBGE agregado `periodicidade.frequencia` API value to the set of
+# canonical `periodo.frequencia` values produced by `parse_period`. "anual"
+# expands to {anual, plurianual} because annual agregados routinely include
+# "YYYY/YYYY" range periods that parse to plurianual.
+_API_PERIODICIDADE_TO_FREQUENCIAS: dict[str, set[str]] = {
+    "mensal": {FREQUENCIA_MENSAL},
+    "trimestral": {FREQUENCIA_TRIMESTRAL},
+    "trimestral móvel": {FREQUENCIA_TRIMESTRE_MOVEL},
+    "semestral": {FREQUENCIA_SEMESTRAL},
+    "anual": {FREQUENCIA_ANUAL, FREQUENCIA_PLURIANUAL},
+    "decenal": {FREQUENCIA_ANUAL, FREQUENCIA_PLURIANUAL},
+}
+
+
+def expected_periodo_frequencias(api_periodicidade: str | None) -> set[str]:
+    """Map an IBGE agregado `periodicidade.frequencia` to canonical period frequencies.
+
+    Returns the set of `periodo.frequencia` values that periods of an agregado
+    with the given API periodicidade are expected to have. Returns an empty set
+    for unknown or falsy inputs, which callers should interpret as "no filter".
+    """
+    if not api_periodicidade:
+        return set()
+    key = api_periodicidade.strip().lower()
+    return _API_PERIODICIDADE_TO_FREQUENCIAS.get(key, set())
+
+
 # Define patterns for different period types
 
 # Rolling Quarters
