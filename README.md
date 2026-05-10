@@ -21,13 +21,13 @@
 ## Installation
 
 ```bash
-pip install sidra-fetcher
+pip install git+https://github.com/Quantilica/sidra-fetcher.git
 ```
 
 With [uv](https://github.com/astral-sh/uv):
 
 ```bash
-uv add sidra-fetcher
+uv add "git+https://github.com/Quantilica/sidra-fetcher.git"
 ```
 
 **Requirements:** Python 3.13+
