@@ -34,6 +34,12 @@ dependencies = [
     "quantilica-core @ git+https://github.com/Quantilica/quantilica-core.git",
 ]
 
+[project.scripts]
+sidra-fetcher = "sidra_fetcher.cli:main"
+
+[project.entry-points."quantilica.fetchers"]
+sidra = "sidra_fetcher.plugin:app"
+
 [project.urls]
 Homepage = "https://github.com/Quantilica/sidra-fetcher"
 Repository = "https://github.com/Quantilica/sidra-fetcher"
