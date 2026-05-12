@@ -1,0 +1,133 @@
+# Copyright (c) 2026 Komesu, D.K.
+# Licensed under the MIT License.
+
+"""Command line interface for sidra-fetcher (minimal dependencies)."""
+
+from __future__ import annotations
+
+import argparse
+import logging
+import sys
+
+from quantilica_core.logging import configure_cli_logging
+
+from sidra_fetcher import logger
+from sidra_fetcher.fetcher import SidraClient
+
+
+def handle_list_pesquisas(args: argparse.Namespace):
+    """Handle list-pesquisas command."""
+    with SidraClient() as client:
+        pesquisas = client.get_indice_pesquisas_agregados()
+
+    print(f"{'ID':<10} {'Nome':<60} {'Agregados':<10}")
+    print("-" * 80)
+    for p in pesquisas:
+        print(f"{p.id:<10} {p.nome[:59]:<60} {len(p.agregados):<10}")
+
+
+def handle_list_agregados(args: argparse.Namespace):
+    """Handle list-agregados command."""
+    with SidraClient() as client:
+        pesquisas = client.get_indice_pesquisas_agregados()
+        pesquisa = next((p for p in pesquisas if p.id == args.pesquisa_id), None)
+
+    if not pesquisa:
+        print(f"Erro: Pesquisa {args.pesquisa_id} não encontrada.")
+        sys.exit(1)
+
+    print(f"Agregados da Pesquisa: {pesquisa.nome}")
+    print(f"{'ID':<10} {'Nome'}")
+    print("-" * 80)
+    for a in pesquisa.agregados:
+        print(f"{a.id:<10} {a.nome}")
+
+
+def handle_info(args: argparse.Namespace):
+    """Handle info command."""
+    with SidraClient() as client:
+        try:
+            metadados = client.get_agregado_metadados(args.agregado_id)
+        except Exception as e:
+            print(f"Erro ao buscar metadados: {e}")
+            sys.exit(1)
+
+    print(f"\nAgregado {metadados.id}: {metadados.nome}")
+    print(f"Assunto: {metadados.assunto}")
+    print("-" * 80)
+    print("\nVariáveis:")
+    print(f"{'ID':<10} {'Nome':<50} {'Unidade'}")
+    for v in metadados.variaveis:
+        print(f"{v.id:<10} {v.nome[:49]:<50} {v.unidade}")
+
+    if metadados.classificacoes:
+        print("\nClassificações:")
+        print(f"{'ID':<10} {'Nome':<50} {'Categorias'}")
+        for c in metadados.classificacoes:
+            print(f"{c.id:<10} {c.nome[:49]:<50} {len(c.categorias)}")
+
+
+def handle_periods(args: argparse.Namespace):
+    """Handle periods command."""
+    with SidraClient() as client:
+        try:
+            periodos = client.get_agregado_periodos(args.agregado_id)
+        except Exception as e:
+            print(f"Erro ao buscar períodos: {e}")
+            sys.exit(1)
+
+    print(f"Períodos para Agregado {args.agregado_id}:")
+    print(f"{'ID':<10} {'Nome':<30} {'Modificação'}")
+    print("-" * 60)
+    for p in periodos:
+        print(f"{p.id:<10} {p.nome:<30} {p.modificacao.isoformat()}")
+
+
+def main():
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        prog="sidra-fetcher",
+        description="Interface para as APIs SIDRA/Agregados do IBGE."
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        default=False,
+        help="Exibir logs detalhados em vez de barra de progresso",
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    # list-pesquisas
+    subparsers.add_parser("list-pesquisas", help="Lista todas as pesquisas disponíveis.")
+
+    # list-agregados
+    agg_parser = subparsers.add_parser("list-agregados", help="Lista agregados de uma pesquisa.")
+    agg_parser.add_argument("pesquisa_id", type=int, help="ID da pesquisa.")
+
+    # info
+    info_parser = subparsers.add_parser("info", help="Exibe metadados de um agregado.")
+    info_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
+
+    # periods
+    p_parser = subparsers.add_parser("periods", help="Lista períodos de um agregado.")
+    p_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
+
+    args = parser.parse_args()
+    configure_cli_logging(verbose=args.verbose)
+    if not args.verbose:
+        logging.getLogger("sidra_fetcher").setLevel(logging.WARNING)
+
+    if args.command == "list-pesquisas":
+        handle_list_pesquisas(args)
+    elif args.command == "list-agregados":
+        handle_list_agregados(args)
+    elif args.command == "info":
+        handle_info(args)
+    elif args.command == "periods":
+        handle_periods(args)
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
