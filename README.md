@@ -1,61 +1,49 @@
-# sidra-fetcher
+# sidra-fetcher: Cliente Python para a API do IBGE/SIDRA
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square) ![Python](https://img.shields.io/badge/python-3.13+-blue.svg?style=flat-square)
 
-**sidra-fetcher** is a Python library for fetching and processing data and metadata from [IBGE](https://www.ibge.gov.br/)'s official APIs — [Agregados v3](https://servicodados.ibge.gov.br/api/docs/agregados?versao=3) and [SIDRA](https://apisidra.ibge.gov.br). It provides typed, dataclass-based access to surveys, aggregates, periods, territorial levels, variables, and classifications.
-
----
-
-## Features
-
-- Synchronous (`SidraClient`) and asynchronous (`AsyncSidraClient`) HTTP clients with automatic retry logic
-- Typed Python dataclasses for all API responses (aggregates, periods, localities, variables, classifications)
-- Temporal parsing for all Brazilian period formats: monthly, quarterly, rolling quarter, semiannual, annual, and multi-annual
-- SIDRA `/values` URL builder and parser (`Parametro`) with support for all request segments
-- Utilities to flatten aggregate metadata into tabular structures for data analysis
-- Save and load aggregate metadata to/from JSON
-- Size and dimension statistics for planning bulk downloads
+Biblioteca Python para buscar e processar dados e metadados das APIs oficiais do [IBGE](https://www.ibge.gov.br/) — [Agregados v3](https://servicodados.ibge.gov.br/api/docs/agregados?versao=3) e [SIDRA](https://apisidra.ibge.gov.br). Fornece acesso tipado via dataclasses a pesquisas, agregados, períodos, territórios, variáveis e classificações, com clientes síncrono e assíncrono.
 
 ---
 
-## Installation
+## Instalação
 
 ```bash
 pip install git+https://github.com/Quantilica/sidra-fetcher.git
 ```
 
-With [uv](https://github.com/astral-sh/uv):
+Com [uv](https://github.com/astral-sh/uv):
 
 ```bash
 uv add "git+https://github.com/Quantilica/sidra-fetcher.git"
 ```
 
-**Requirements:** Python 3.13+
+**Requisitos:** Python 3.13+
 
 ---
 
-## Quick Start
+## Uso Rápido
 
 ```python
 from sidra_fetcher.fetcher import SidraClient
 
 with SidraClient() as client:
-    # List all surveys and their aggregates
+    # Listar todas as pesquisas e seus agregados
     index = client.get_indice_pesquisas_agregados()
     print(index[0].nome, "->", index[0].agregados[0].nome)
 
-    # Full metadata for aggregate 1705 (IPCA-15 - de fev/2012 até jan/2020)
+    # Metadados completos do agregado 1705 (IPCA-15)
     agregado = client.get_agregado(1705)
     print(agregado.nome)
-    print(f"Periods: {len(agregado.periodos)}")
-    print(f"Localities: {len(agregado.localidades)}")
+    print(f"Períodos: {len(agregado.periodos)}")
+    print(f"Localidades: {len(agregado.localidades)}")
 ```
 
 ---
 
-## Agregados API
+## API Python
 
-### `SidraClient` (synchronous)
+### `SidraClient` (síncrono)
 
 ```python
 from sidra_fetcher.fetcher import SidraClient
@@ -63,11 +51,11 @@ from sidra_fetcher.fetcher import SidraClient
 client = SidraClient(timeout=60)
 ```
 
-All methods below can also be used as a context manager via `with SidraClient() as client:`.
+Todos os métodos abaixo também funcionam via context manager: `with SidraClient() as client:`.
 
 #### `get_indice_pesquisas_agregados()`
 
-Returns all surveys with their nested aggregate index.
+Retorna todas as pesquisas com o índice de agregados aninhado.
 
 ```python
 index = client.get_indice_pesquisas_agregados()
@@ -81,21 +69,21 @@ for pesquisa in index:
 
 #### `get_agregado_metadados(agregado_id)`
 
-Returns full metadata for a single aggregate — variables, classifications, territorial levels and periodicidade.
+Retorna os metadados completos de um agregado — variáveis, classificações, níveis territoriais e periodicidade.
 
 ```python
 meta = client.get_agregado_metadados(1705)
 # -> Agregado
 
 print(meta.id, meta.nome)
-print(meta.periodicidade.frequencia)   # e.g. "mensal"
+print(meta.periodicidade.frequencia)   # ex: "mensal"
 print([v.nome for v in meta.variaveis])
 print([c.nome for c in meta.classificacoes])
 ```
 
 #### `get_agregado_periodos(agregado_id)`
 
-Returns available periods for an aggregate, with parsed temporal metadata.
+Retorna os períodos disponíveis de um agregado, com metadados temporais analisados.
 
 ```python
 periodos = client.get_agregado_periodos(1705)
@@ -103,14 +91,14 @@ periodos = client.get_agregado_periodos(1705)
 
 for p in periodos:
     print(p.id, p.frequencia, p.data_inicio, p.data_fim)
-    # e.g. "202312  mensal  2023-12-01  2023-12-31"
+    # ex: "202312  mensal  2023-12-01  2023-12-31"
 ```
 
-See [Period Parsing](#period-parsing) for the full list of fields on `Periodo`.
+Veja [Análise de Períodos](#análise-de-períodos) para a lista completa de campos do objeto `Periodo`.
 
 #### `get_agregado_localidades(agregado_id, localidades_nivel)`
 
-Returns localities filtered by one or more territorial level codes (e.g. `"N1"` for Brazil, `"N3"` for states, `"N6"` for municipalities).
+Retorna as localidades filtradas por um ou mais códigos de nível territorial (ex: `"N1"` para Brasil, `"N3"` para estados, `"N6"` para municípios).
 
 ```python
 localidades = client.get_agregado_localidades(1705, "N3")
@@ -122,16 +110,16 @@ for loc in localidades:
 
 #### `get_agregado(agregado_id)`
 
-Convenience method: fetches metadata, periods, and all declared localities in one call.
+Método de conveniência: busca metadados, períodos e todas as localidades declaradas em uma única chamada.
 
 ```python
 agregado = client.get_agregado(1705)
-# -> Agregado (with .periodos and .localidades populated)
+# -> Agregado (com .periodos e .localidades preenchidos)
 ```
 
 #### `get_acervo(acervo)`
 
-Fetches an "acervo" (collection) listing. Use `AcervoEnum` to select the desired collection.
+Busca uma listagem de "acervo" (coleção). Use `AcervoEnum` para selecionar a coleção desejada.
 
 ```python
 from sidra_fetcher.agregados import AcervoEnum
@@ -140,22 +128,22 @@ assuntos = client.get_acervo(AcervoEnum.ASSUNTO)
 variaveis = client.get_acervo(AcervoEnum.VARIAVEL)
 ```
 
-Available `AcervoEnum` values:
+Valores disponíveis no `AcervoEnum`:
 
-| Member              | Description            |
-|---------------------|------------------------|
-| `ASSUNTO`           | Topics / subjects      |
-| `CLASSIFICACAO`     | Classifications        |
-| `NIVELTERRITORIAL`  | Territorial levels     |
-| `PERIODO`           | Periods                |
-| `PERIODICIDADE`     | Periodicities          |
-| `VARIAVEL`          | Variables              |
+| Membro              | Descrição               |
+|---------------------|-------------------------|
+| `ASSUNTO`           | Tópicos / assuntos      |
+| `CLASSIFICACAO`     | Classificações          |
+| `NIVELTERRITORIAL`  | Níveis territoriais     |
+| `PERIODO`           | Períodos                |
+| `PERIODICIDADE`     | Periodicidades          |
+| `VARIAVEL`          | Variáveis               |
 
 ---
 
-### `AsyncSidraClient` (asynchronous)
+### `AsyncSidraClient` (assíncrono)
 
-Drop-in async counterpart of `SidraClient`. All methods are coroutines. `get_agregado` fetches metadata and periods concurrently via `asyncio.gather`.
+Equivalente assíncrono do `SidraClient`. Todos os métodos são corrotinas. `get_agregado` busca metadados e períodos concorrentemente via `asyncio.gather`.
 
 ```python
 import asyncio
@@ -172,39 +160,39 @@ asyncio.run(main())
 
 ---
 
-## Period Parsing
+## Análise de Períodos
 
-`get_agregado_periodos` parses the literal period strings returned by the API into structured `Periodo` objects. The detected frequency and computed date range are populated automatically.
+`get_agregado_periodos` analisa as strings de período retornadas pela API e as converte em objetos `Periodo` estruturados, com frequência detectada e intervalo de datas calculado automaticamente.
 
-### `Periodo` fields
+### Campos do objeto `Periodo`
 
-| Field         | Type            | Description                                              |
-|---------------|-----------------|----------------------------------------------------------|
-| `id`          | `str`           | Raw period id from the API (e.g. `"202312"`)             |
-| `literals`    | `list[str]`     | Human-readable representations (e.g. `["dezembro de 2023"]`) |
-| `modificacao` | `dt.date`       | Date the period data was last updated                    |
-| `frequencia`  | `str \| None`   | Detected frequency type (see table below)                |
-| `data_inicio` | `dt.date \| None` | First day of the period                                |
-| `data_fim`    | `dt.date \| None` | Last day of the period                                 |
-| `ano`         | `int \| None`   | Year                                                     |
-| `mes`         | `int \| None`   | Month (1–12); for rolling quarters, the last month       |
-| `trimestre`   | `int \| None`   | Quarter number (1–4)                                     |
-| `semestre`    | `int \| None`   | Semester number (1–2)                                    |
-| `ano_fim`     | `int \| None`   | End year for multi-annual periods                        |
+| Campo         | Tipo              | Descrição                                                    |
+|---------------|-------------------|--------------------------------------------------------------|
+| `id`          | `str`             | ID bruto do período da API (ex: `"202312"`)                  |
+| `literals`    | `list[str]`       | Representações legíveis (ex: `["dezembro de 2023"]`)         |
+| `modificacao` | `dt.date`         | Data da última atualização dos dados do período              |
+| `frequencia`  | `str \| None`     | Tipo de frequência detectado (ver tabela abaixo)             |
+| `data_inicio` | `dt.date \| None` | Primeiro dia do período                                      |
+| `data_fim`    | `dt.date \| None` | Último dia do período                                        |
+| `ano`         | `int \| None`     | Ano                                                          |
+| `mes`         | `int \| None`     | Mês (1–12); em trimestres móveis, o último mês               |
+| `trimestre`   | `int \| None`     | Número do trimestre (1–4)                                    |
+| `semestre`    | `int \| None`     | Número do semestre (1–2)                                     |
+| `ano_fim`     | `int \| None`     | Ano final para períodos plurianuais                          |
 
-### Frequency types
+### Tipos de frequência
 
-| `frequencia`        | Literal example              | Date range                    |
+| `frequencia`        | Exemplo de literal           | Intervalo de datas            |
 |---------------------|------------------------------|-------------------------------|
-| `mensal`            | `"janeiro de 2023"`          | Jan 1 – Jan 31                |
-| `trimestral`        | `"1º trimestre de 2023"`     | Jan 1 – Mar 31                |
-| `trimestre_movel`   | `"jan-fev-mar 2023"`         | Jan 1 – Mar 31                |
-| `semestral`         | `"1º semestre de 2023"`      | Jan 1 – Jun 30                |
-| `anual`             | `"2023"`                     | Jan 1 – Dec 31                |
-| `plurianual`        | `"2020/2023"`                | Jan 1 2020 – Dec 31 2023      |
-| `nao_reconhecida`   | *(unmatched)*                | `None` / `None`               |
+| `mensal`            | `"janeiro de 2023"`          | 1 jan – 31 jan                |
+| `trimestral`        | `"1º trimestre de 2023"`     | 1 jan – 31 mar                |
+| `trimestre_movel`   | `"jan-fev-mar 2023"`         | 1 jan – 31 mar                |
+| `semestral`         | `"1º semestre de 2023"`      | 1 jan – 30 jun                |
+| `anual`             | `"2023"`                     | 1 jan – 31 dez                |
+| `plurianual`        | `"2020/2023"`                | 1 jan 2020 – 31 dez 2023      |
+| `nao_reconhecida`   | *(sem correspondência)*      | `None` / `None`               |
 
-The frequency constants are also importable:
+As constantes de frequência também são importáveis:
 
 ```python
 from sidra_fetcher.periodos import (
@@ -220,17 +208,17 @@ from sidra_fetcher.periodos import (
 
 ---
 
-## SIDRA API — URL Builder
+## Construtor de URL SIDRA
 
-The `Parametro` class builds and parses SIDRA `/values` request URLs.
+A classe `Parametro` constrói e analisa URLs de requisição SIDRA (`/values`).
 
 ```python
 from sidra_fetcher.sidra import Parametro, Formato, Precisao
 
 params = Parametro(
     agregado="1705",
-    territorios={"3": ["all"]},   # all states
-    variaveis=["4099"],            # unemployment rate
+    territorios={"3": ["all"]},   # todos os estados
+    variaveis=["4099"],            # taxa de desemprego
     periodos=["202301", "202302"],
     classificacoes={"2": ["6794"]},
     formato=Formato.A,
@@ -241,20 +229,20 @@ print(params.url())
 # https://apisidra.ibge.gov.br/values/t/1705/n3/all/v/4099/p/202301,202302/c2/6794/h/y/f/a/d/m
 ```
 
-### `Parametro` parameters
+### Parâmetros do `Parametro`
 
-| Parameter       | Type                        | SIDRA segment    | Example value                        |
-|-----------------|-----------------------------|------------------|--------------------------------------|
-| `agregado`      | `str`                       | `/t/{id}`        | `"1705"`                             |
-| `territorios`   | `dict[str, list[str]]`      | `/n{level}/{ids}`| `{"3": ["all"]}` → `/n3/all`         |
-| `variaveis`     | `list[str]`                 | `/v/{ids}`       | `["4099", "4100"]` or `[]` → `/v/all`|
-| `periodos`      | `list[str]`                 | `/p/{ids}`       | `["202301"]` or `[]` → `/p/all`      |
-| `classificacoes`| `dict[str, list[str]]`      | `/c{id}/{values}`| `{"2": ["6794"]}`                    |
-| `cabecalho`     | `bool`                      | `/h/y` or `/h/n` | `True`                               |
-| `formato`       | `Formato`                   | `/f/{code}`      | `Formato.A`                          |
-| `decimais`      | `dict[str, Precisao]`       | `/d/{precision}` | `{"": Precisao.M}` → `/d/m`          |
+| Parâmetro       | Tipo                        | Segmento SIDRA    | Exemplo                               |
+|-----------------|-----------------------------|-------------------|---------------------------------------|
+| `agregado`      | `str`                       | `/t/{id}`         | `"1705"`                              |
+| `territorios`   | `dict[str, list[str]]`      | `/n{nivel}/{ids}` | `{"3": ["all"]}` → `/n3/all`          |
+| `variaveis`     | `list[str]`                 | `/v/{ids}`        | `["4099", "4100"]` ou `[]` → `/v/all` |
+| `periodos`      | `list[str]`                 | `/p/{ids}`        | `["202301"]` ou `[]` → `/p/all`       |
+| `classificacoes`| `dict[str, list[str]]`      | `/c{id}/{values}` | `{"2": ["6794"]}`                     |
+| `cabecalho`     | `bool`                      | `/h/y` ou `/h/n`  | `True`                                |
+| `formato`       | `Formato`                   | `/f/{code}`       | `Formato.A`                           |
+| `decimais`      | `dict[str, Precisao]`       | `/d/{precisao}`   | `{"": Precisao.M}` → `/d/m`           |
 
-### Parsing an existing SIDRA URL
+### Analisar uma URL SIDRA existente
 
 ```python
 from sidra_fetcher.sidra import parameter_from_url, parse_url
@@ -273,23 +261,23 @@ print(parsed["periods"])      # ["all"]
 
 ---
 
-## Reader and Flattening Utilities
+## Utilitários de Leitura e Achatamento
 
-### Saving and loading aggregate metadata
+### Salvar e carregar metadados de agregados
 
 ```python
 from sidra_fetcher.reader import save_agregado, load_agregado
 
-# Save to JSON
+# Salvar em JSON
 save_agregado(agregado, "agregado_1705.json")
 
-# Load from JSON (periodos are re-parsed automatically)
+# Carregar do JSON (períodos são reanalisados automaticamente)
 agregado = load_agregado("agregado_1705.json")
 ```
 
-### Flattening metadata for analysis
+### Achatar metadados para análise
 
-`flatten_aggregate_metadata` turns the hierarchical variable × classification structure into a flat sequence of dicts — one row per unique variable + category combination:
+`flatten_aggregate_metadata` transforma a estrutura hierárquica variável × classificação em uma sequência de dicts — uma linha por combinação única de variável + categoria:
 
 ```python
 from sidra_fetcher.reader import flatten_aggregate_metadata
@@ -300,22 +288,22 @@ for row in flatten_aggregate_metadata(raw_meta):
     print(row["agregado"], row["D4N"], row.get("C5N"), row["MN"])
 ```
 
-Each row contains:
+Cada linha contém:
 
-| Key         | Description                                     |
-|-------------|-------------------------------------------------|
-| `agregado`  | Aggregate name                                  |
-| `pesquisa`  | Survey name                                     |
-| `assunto`   | Subject / topic                                 |
-| `frequencia`| Frequency of the aggregate                      |
-| `url_agregado` | Aggregate URL                                |
-| `D4C`/`D4N` | Variable id / name                             |
-| `D5C`/`D5N` | First classification id / name                 |
-| `C5C`/`C5N` | First category id / name                       |
-| `MN`        | Measurement unit                                |
-| `nivel`     | Category hierarchy level                        |
+| Chave          | Descrição                                   |
+|----------------|---------------------------------------------|
+| `agregado`     | Nome do agregado                            |
+| `pesquisa`     | Nome da pesquisa                            |
+| `assunto`      | Assunto / tópico                            |
+| `frequencia`   | Frequência do agregado                      |
+| `url_agregado` | URL do agregado                             |
+| `D4C`/`D4N`    | ID / nome da variável                       |
+| `D5C`/`D5N`    | ID / nome da primeira classificação         |
+| `C5C`/`C5N`    | ID / nome da primeira categoria             |
+| `MN`           | Unidade de medida                           |
+| `nivel`        | Nível hierárquico da categoria              |
 
-`flatten_surveys_metadata` flattens the top-level survey index into a list of `{pesquisa_id, pesquisa, agregado_id, agregado}` dicts:
+`flatten_surveys_metadata` achata o índice de pesquisas em uma lista de dicts `{pesquisa_id, pesquisa, agregado_id, agregado}`:
 
 ```python
 from sidra_fetcher.reader import flatten_surveys_metadata
@@ -326,7 +314,7 @@ rows = flatten_surveys_metadata(raw_index)
 
 ---
 
-## Size and Statistics Utilities
+## Utilitários de Tamanho e Estatísticas
 
 ```python
 from sidra_fetcher.stats import calculate_aggregate
@@ -341,100 +329,41 @@ print(stats)
 #   "n_classificacoes": 1,
 #   "n_dimensoes": 2,
 #   "n_periodos": 84,
-#   "period_size": 54,    # rows per period
-#   "total_size": 4536,   # estimated total rows
+#   "period_size": 54,    # linhas por período
+#   "total_size": 4536,   # total estimado de linhas
 #   ...
 # }
 ```
 
 ---
 
-## Data Structures
-
-Key dataclasses from `sidra_fetcher.agregados`:
-
-```
-Agregado
-├── id, nome, url, assunto
-├── pesquisa: Pesquisa (id, nome)
-├── periodicidade: Periodicidade (frequencia, inicio, fim)
-├── nivel_territorial: AgregadoNivelTerritorial
-│   ├── administrativo: list[str]
-│   ├── especial: list[str]
-│   └── ibge: list[str]
-├── variaveis: list[Variavel] (id, nome, unidade, sumarizacao)
-├── classificacoes: list[Classificacao]
-│   ├── id, nome
-│   ├── sumarizacao: ClassificacaoSumarizacao (status, excecao)
-│   └── categorias: list[Categoria] (id, nome, unidade, nivel)
-├── periodos: list[Periodo]
-│   └── id, literals, modificacao, frequencia,
-│       data_inicio, data_fim, ano, mes, trimestre, semestre, ano_fim
-└── localidades: list[Localidade]
-    └── id, nome, nivel: NivelTerritorial (id, nome)
-```
-
----
-
-## Project Structure
+## Estrutura do Projeto
 
 ```
 src/sidra_fetcher/
-├── __init__.py          — package logger
-├── agregados.py         — dataclasses and URL builders for the Agregados API
-├── fetcher.py           — SidraClient and AsyncSidraClient
-├── periodos.py          — period string parsing and frequency detection
-├── reader.py            — JSON → dataclass parsers and metadata flattening
-├── sidra.py             — SIDRA URL builder (Parametro) and parsers
-├── stats.py             — size and dimension statistics
-└── api_undocumented.py  — URLs for undocumented IBGE endpoints
+├── __init__.py          — logger do pacote
+├── agregados.py         — dataclasses e construtores de URL para a API Agregados
+├── fetcher.py           — SidraClient e AsyncSidraClient
+├── periodos.py          — análise de strings de período e detecção de frequência
+├── reader.py            — parsers JSON → dataclass e achatamento de metadados
+├── sidra.py             — construtor de URL SIDRA (Parametro) e parsers
+├── stats.py             — estatísticas de tamanho e dimensões
+└── api_undocumented.py  — URLs de endpoints não documentados do IBGE
 ```
 
 ---
 
-## Supported APIs
-
-| API | Documentation |
-|-----|---------------|
-| IBGE Agregados v3 | https://servicodados.ibge.gov.br/api/docs/agregados?versao=3 |
-| SIDRA | https://apisidra.ibge.gov.br/home/ajuda |
-
-### Undocumented Acervos (Agregados)
-
-| Acervo | URL |
-|--------|-----|
-| Assuntos | https://servicodados.ibge.gov.br/api/v3/agregados?acervo=A |
-| Classificações | https://servicodados.ibge.gov.br/api/v3/agregados?acervo=C |
-| Nível Territorial | https://servicodados.ibge.gov.br/api/v3/agregados?acervo=N |
-| Períodos | https://servicodados.ibge.gov.br/api/v3/agregados?acervo=P |
-| Periodicidades | https://servicodados.ibge.gov.br/api/v3/agregados?acervo=E |
-| Variáveis | https://servicodados.ibge.gov.br/api/v3/agregados?acervo=V |
-
----
-
-## Development
+## Desenvolvimento
 
 ```bash
-git clone https://github.com/dankkom/sidra-fetcher.git
+git clone https://github.com/Quantilica/sidra-fetcher.git
 cd sidra-fetcher
 uv sync --extra dev
-```
-
-### Linting and formatting
-
-```bash
 uv run ruff check src/ tests/
 uv run ruff format src/ tests/
-```
-
-### Running tests
-
-```bash
 uv run python -m unittest discover -v tests
 ```
 
----
+## Licença
 
-## License
-
-MIT. See [LICENSE](LICENSE) for details.
+MIT — veja [LICENSE](LICENSE).

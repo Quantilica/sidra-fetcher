@@ -29,8 +29,13 @@ Typical usage:
 
 import datetime as dt
 import json
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
+
+import quantilica_core.metadata as core_meta
+from quantilica_core.manifests import DownloadManifest
+from quantilica_core.storage import LocalStorage
 
 from .agregados import (
     Agregado,
@@ -123,10 +128,10 @@ def _iter_classificacoes_metadata(
             continue
 
         new_metadata = metadata | {
-            "D{i}C".format(i=n): classification_id,
-            "D{i}N".format(i=n): classification_name,
-            "C{i}C".format(i=n): category_id,
-            "C{i}N".format(i=n): category_name,
+            f"D{n}C": classification_id,
+            f"D{n}N": classification_name,
+            f"C{n}C": category_id,
+            f"C{n}N": category_name,
             "MN": unit,
         }
 
@@ -536,20 +541,111 @@ def read_localidades(data: list[dict[str, Any]]) -> list[Localidade]:
 
 
 def save_agregado(agregado: Agregado, path: str | Path) -> None:
-    """Save an Agregado instance to a JSON file.
+    """Save an Agregado instance to a JSON file and generate a manifest."""
+    path = Path(path)
+    content = json.dumps(
+        agregado.asdict(),
+        ensure_ascii=False,
+        indent=2,
+        cls=DateEncoder,
+    ).encode("utf-8")
 
-    Args:
-        agregado: The Agregado instance to save.
-        path: Path to the output JSON file.
-    """
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(
-            agregado.asdict(),
-            f,
-            ensure_ascii=False,
-            indent=2,
-            cls=DateEncoder,
+    # Use LocalStorage for atomic write
+    storage = LocalStorage(path.parent)
+    storage.write_bytes(path.name, content)
+
+    # Generate and save manifest
+    manifest = DownloadManifest.from_content(
+        source_id="ibge",
+        dataset_id=str(agregado.id),
+        url=agregado.url
+        or f"https://servicodados.ibge.gov.br/api/v3/agregados/{agregado.id}",
+        content=content,
+        path=str(path.absolute()),
+        producer="sidra-fetcher",
+        metadata={
+            "nome": agregado.nome,
+            "pesquisa": agregado.pesquisa.nome,
+        },
+    )
+    manifest_path = path.with_suffix(path.suffix + ".manifest.json")
+    manifest.write_json(manifest_path)
+
+
+def agregado_to_catalog(agregado: Agregado) -> core_meta.MetadataCatalog:
+    """Convert an IBGE Agregado to a quantilica-core MetadataCatalog."""
+    dataset_id = str(agregado.id)
+    source_id = "ibge"
+
+    source = core_meta.Source(
+        id=source_id,
+        name="IBGE - Instituto Brasileiro de Geografia e Estatística",
+        homepage_url="https://www.ibge.gov.br",
+    )
+
+    dataset = core_meta.Dataset(
+        id=dataset_id,
+        source_id=source_id,
+        name=agregado.nome,
+        homepage_url=agregado.url,
+        description=agregado.assunto,
+        metadata={
+            "pesquisa_id": agregado.pesquisa.id,
+            "pesquisa_nome": agregado.pesquisa.nome,
+            "periodicidade": agregado.periodicidade.frequencia,
+        },
+    )
+
+    variables = [
+        core_meta.Variable(
+            id=str(v.id),
+            dataset_id=dataset_id,
+            name=v.name,
+            unit=v.unit,
         )
+        for v in agregado.variaveis
+    ]
+
+    dimensions = [
+        core_meta.Dimension(
+            id=str(c.id),
+            dataset_id=dataset_id,
+            name=c.nome,
+            values=[cat.nome for cat in c.categorias],
+        )
+        for c in agregado.classificacoes
+    ]
+
+    periods = [
+        core_meta.Period(
+            id=p.id,
+            label=p.literals[0] if p.literals else p.id,
+            start_date=p.data_inicio.isoformat() if p.data_inicio else None,
+            end_date=p.data_fim.isoformat() if p.data_fim else None,
+            frequency=p.frequencia,
+        )
+        for p in agregado.periodos
+    ]
+
+    territories = [
+        core_meta.Territory(
+            id=loc.id,
+            name=loc.nome,
+            level=loc.nivel.id,
+        )
+        for loc in agregado.localidades
+    ]
+
+    catalog = core_meta.MetadataCatalog(
+        sources=[source],
+        datasets=[dataset],
+        variables=variables,
+        dimensions=dimensions,
+        periods=periods,
+        territories=territories,
+    )
+    catalog.validate_references()
+    return catalog
 
 
 def load_agregado(path: str | Path) -> Agregado:
@@ -561,7 +657,7 @@ def load_agregado(path: str | Path) -> Agregado:
     Returns:
         The deserialized Agregado instance.
     """
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
     nivel_territorial = AgregadoNivelTerritorial(**data["nivel_territorial"])

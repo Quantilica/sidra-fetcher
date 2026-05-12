@@ -7,7 +7,13 @@ Provides a package-level ``logger`` configured with a NullHandler so
 that consumers can opt-in to logging configuration.
 """
 
-import logging
+from importlib.metadata import PackageNotFoundError, version
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+from quantilica_core.logging import get_logger
+
+try:
+    __version__ = version("sidra-fetcher")
+except PackageNotFoundError:
+    __version__ = "0.0.0"
+
+logger = get_logger(__name__)
