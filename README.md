@@ -20,6 +20,34 @@ uv add "git+https://github.com/Quantilica/sidra-fetcher.git"
 
 **Requisitos:** Python 3.13+
 
+## Interface de Linha de Comando (CLI)
+
+O `sidra-fetcher` inclui uma interface de linha de comando para exploração rápida de metadados.
+
+### Uso Autônomo
+
+```bash
+# Listar todas as pesquisas
+sidra-fetcher list-pesquisas
+
+# Listar agregados de uma pesquisa (ex: 73)
+sidra-fetcher list-agregados 73
+
+# Ver metadados detalhados de um agregado (ex: 1612)
+sidra-fetcher info 1612
+
+# Listar períodos disponíveis
+sidra-fetcher periods 1612
+```
+
+### Integração com `quantilica-cli`
+
+Se o `quantilica-cli` estiver instalado no mesmo ambiente, o `sidra-fetcher` será detectado automaticamente como um plugin:
+
+```bash
+quantilica fetch sidra info 1612
+```
+
 ---
 
 ## Uso Rápido
