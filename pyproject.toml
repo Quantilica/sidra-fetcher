@@ -53,7 +53,10 @@ dev = [
 
 [tool.ruff]
 line-length = 79
-lint.select = ["E", "F", "I", "UP", "B"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
 # Mock setup must precede package imports in this test file
