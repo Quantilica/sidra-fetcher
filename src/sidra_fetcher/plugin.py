@@ -5,22 +5,46 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Annotated
 
 import typer
 from rich.console import Console
+from rich.logging import RichHandler
 from rich.panel import Panel
 from rich.table import Table
 
 from sidra_fetcher.fetcher import SidraClient
 
 app = typer.Typer(help="Interface para as APIs SIDRA/Agregados do IBGE.")
+list_sub = typer.Typer(help="Listar pesquisas e agregados do IBGE.")
+app.add_typer(list_sub, name="list")
 console = Console()
 
 
-@app.command("list-pesquisas")
-def list_pesquisas() -> None:
-    """Lista todas as pesquisas disponíveis no sistema de agregados."""
+def _setup_logging(verbose: bool) -> None:
+    """Configura logging via RichHandler para não quebrar barras de progresso.
+
+    verbose=False → WARNING apenas; verbose=True → DEBUG via Rich console.
+    """
+    level = logging.DEBUG if verbose else logging.WARNING
+    logging.basicConfig(
+        level=level,
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler(console=console, show_path=False)],
+        force=True,
+    )
+
+
+@list_sub.command("pesquisas")
+def list_pesquisas(
+    verbose: Annotated[
+        bool, typer.Option("--verbose", help="Logs detalhados")
+    ] = False,
+) -> None:
+    """Listar todas as pesquisas disponíveis no sistema de agregados."""
+    _setup_logging(verbose)
     with SidraClient() as client:
         pesquisas = client.get_indice_pesquisas_agregados()
 
@@ -35,17 +59,27 @@ def list_pesquisas() -> None:
     console.print(table)
 
 
-@app.command("list-agregados")
+@list_sub.command("agregados")
 def list_agregados(
-    pesquisa_id: Annotated[int, typer.Argument(help="ID da pesquisa (ex: 73)")]
+    pesquisa_id: Annotated[
+        int, typer.Argument(help="ID da pesquisa (ex: 73)")
+    ],
+    verbose: Annotated[
+        bool, typer.Option("--verbose", help="Logs detalhados")
+    ] = False,
 ) -> None:
-    """Lista todos os agregados de uma pesquisa específica."""
+    """Listar todos os agregados de uma pesquisa específica."""
+    _setup_logging(verbose)
     with SidraClient() as client:
         pesquisas = client.get_indice_pesquisas_agregados()
-        pesquisa = next((p for p in pesquisas if p.id == pesquisa_id), None)
+        pesquisa = next(
+            (p for p in pesquisas if p.id == pesquisa_id), None
+        )
 
     if not pesquisa:
-        console.print(f"[red]Erro:[/red] Pesquisa {pesquisa_id} não encontrada.")
+        console.print(
+            f"[red]Erro:[/red] Pesquisa {pesquisa_id} não encontrada."
+        )
         raise typer.Exit(1)
 
     table = Table(
@@ -64,24 +98,28 @@ def list_agregados(
 def info(
     agregado_id: Annotated[
         int, typer.Argument(help="ID do agregado (ex: 1612)")
-    ]
+    ],
+    verbose: Annotated[
+        bool, typer.Option("--verbose", help="Logs detalhados")
+    ] = False,
 ) -> None:
-    """Exibe metadados detalhados de um agregado."""
+    """Exibir metadados detalhados de um agregado."""
+    _setup_logging(verbose)
     with SidraClient() as client:
         try:
             metadados = client.get_agregado_metadados(agregado_id)
         except Exception as e:
             console.print(f"[red]Erro ao buscar metadados:[/red] {e}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from e
 
     console.print(
         Panel(
-            f"[bold cyan]{metadados.nome}[/bold cyan]\n[dim]{metadados.assunto}[/dim]",
+            f"[bold cyan]{metadados.nome}[/bold cyan]\n"
+            f"[dim]{metadados.assunto}[/dim]",
             title=f"Agregado {metadados.id}",
         )
     )
 
-    # Variáveis
     v_table = Table(
         title="Variáveis", show_header=True, header_style="bold magenta"
     )
@@ -92,10 +130,11 @@ def info(
         v_table.add_row(str(v.id), v.nome, v.unidade)
     console.print(v_table)
 
-    # Classificações
     if metadados.classificacoes:
         c_table = Table(
-            title="Classificações", show_header=True, header_style="bold yellow"
+            title="Classificações",
+            show_header=True,
+            header_style="bold yellow",
         )
         c_table.add_column("ID", style="cyan")
         c_table.add_column("Nome")
@@ -109,15 +148,19 @@ def info(
 def periods(
     agregado_id: Annotated[
         int, typer.Argument(help="ID do agregado (ex: 1612)")
-    ]
+    ],
+    verbose: Annotated[
+        bool, typer.Option("--verbose", help="Logs detalhados")
+    ] = False,
 ) -> None:
-    """Lista os períodos disponíveis para um agregado."""
+    """Listar os períodos disponíveis para um agregado."""
+    _setup_logging(verbose)
     with SidraClient() as client:
         try:
             periodos = client.get_agregado_periodos(agregado_id)
         except Exception as e:
             console.print(f"[red]Erro ao buscar períodos:[/red] {e}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from e
 
     table = Table(
         title=f"Períodos para Agregado {agregado_id}", show_header=True

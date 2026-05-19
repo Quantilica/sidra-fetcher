@@ -28,10 +28,10 @@ O `sidra-fetcher` inclui uma interface de linha de comando para exploração rá
 
 ```bash
 # Listar todas as pesquisas
-sidra-fetcher list-pesquisas
+sidra-fetcher list pesquisas
 
 # Listar agregados de uma pesquisa (ex: 73)
-sidra-fetcher list-agregados 73
+sidra-fetcher list agregados 73
 
 # Ver metadados detalhados de um agregado (ex: 1612)
 sidra-fetcher info 1612
