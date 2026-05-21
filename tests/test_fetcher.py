@@ -2,28 +2,8 @@
 # Licensed under the MIT License.
 
 import datetime as dt
-import json
-import sys
 import unittest
-from unittest.mock import MagicMock
-
-# Mock external dependencies that might be missing
-sys.modules["httpx"] = MagicMock()
-sys.modules["tenacity"] = MagicMock()
-sys.modules["tenacity.retry"] = MagicMock()
-sys.modules["tenacity.stop"] = MagicMock()
-sys.modules["tenacity.wait"] = MagicMock()
-
-
-# Mock the decorators from tenacity to just return the function
-def mock_retry(*args, **kwargs):
-    def decorator(f):
-        return f
-
-    return decorator
-
-
-sys.modules["tenacity"].retry = mock_retry
+from unittest.mock import MagicMock, patch
 
 from sidra_fetcher.agregados import AcervoEnum
 from sidra_fetcher.fetcher import SidraClient
@@ -38,15 +18,58 @@ from sidra_fetcher.periodos import (
 )
 
 
+def _make_mock_response(data: object) -> MagicMock:
+    """Return a mock httpx.Response that yields *data* as JSON."""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.url = "http://mock"
+    mock_response.json.return_value = data
+    return mock_response
+
+
+def _make_client(mock_response: object) -> SidraClient:
+    """Patch httpx.Client so that any request returns *mock_response*."""
+    mock_resp = _make_mock_response(mock_response)
+    with patch("quantilica_core.http.httpx.Client") as mock_client_cls:
+        ctx = mock_client_cls.return_value.__enter__.return_value
+        ctx.request.return_value = mock_resp
+        # The SidraClient is created inside the patch so the
+        # HttpClient captures the patched httpx.Client class.
+        client = SidraClient()
+    # Re-apply the patch on the already-created client's internal
+    # HttpClient so subsequent calls also use our mock.
+    client._mock_resp = mock_resp
+    client._mock_client_cls_patcher = patch(
+        "quantilica_core.http.httpx.Client"
+    )
+    mock_client_cls2 = client._mock_client_cls_patcher.start()
+    mock_inst2 = mock_client_cls2.return_value.__enter__.return_value
+    mock_inst2.request.return_value = mock_resp
+    return client
+
+
 class TestFetcher(unittest.TestCase):
-    def _setup_mock_periodos(self, mock_response):
-        mock_httpx = sys.modules["httpx"]
-        mock_client_instance = mock_httpx.Client.return_value
-        mock_stream = mock_client_instance.stream.return_value
-        mock_stream.__enter__.return_value.iter_bytes.return_value = [
-            json.dumps(mock_response).encode("utf-8")
-        ]
-        return SidraClient()
+    def setUp(self):
+        self._patchers = []
+
+    def tearDown(self):
+        for p in self._patchers:
+            p.stop()
+
+    def _patch_http(self, data: object) -> tuple[SidraClient, MagicMock]:
+        """
+        Patch httpx.Client used inside quantilica_core.http so that
+        every request returns a response whose .json() is *data*.
+        Returns (client, mock_response).
+        """
+        mock_resp = _make_mock_response(data)
+        patcher = patch("quantilica_core.http.httpx.Client")
+        self._patchers.append(patcher)
+        mock_cls = patcher.start()
+        mock_instance = mock_cls.return_value.__enter__.return_value
+        mock_instance.request.return_value = mock_resp
+        return SidraClient(), mock_resp
 
     def test_get_indice_pesquisas_agregados(self):
         mock_response = [
@@ -57,14 +80,7 @@ class TestFetcher(unittest.TestCase):
             }
         ]
 
-        mock_httpx = sys.modules["httpx"]
-        mock_client_instance = mock_httpx.Client.return_value
-        mock_stream = mock_client_instance.stream.return_value
-        mock_stream.__enter__.return_value.iter_bytes.return_value = [
-            json.dumps(mock_response).encode("utf-8")
-        ]
-
-        client = SidraClient()
+        client, _ = self._patch_http(mock_response)
         result = client.get_indice_pesquisas_agregados()
 
         self.assertEqual(len(result), 1)
@@ -97,20 +113,18 @@ class TestFetcher(unittest.TestCase):
                     "nome": "C1",
                     "sumarizacao": {"status": True, "excecao": []},
                     "categorias": [
-                        {"id": 10, "nome": "Cat1", "unidade": None, "nivel": 1}
+                        {
+                            "id": 10,
+                            "nome": "Cat1",
+                            "unidade": None,
+                            "nivel": 1,
+                        }
                     ],
                 }
             ],
         }
 
-        mock_httpx = sys.modules["httpx"]
-        mock_client_instance = mock_httpx.Client.return_value
-        mock_stream = mock_client_instance.stream.return_value
-        mock_stream.__enter__.return_value.iter_bytes.return_value = [
-            json.dumps(mock_response).encode("utf-8")
-        ]
-
-        client = SidraClient()
+        client, _ = self._patch_http(mock_response)
         agregado = client.get_agregado_metadados(123)
 
         self.assertEqual(agregado.id, 123)
@@ -126,7 +140,7 @@ class TestFetcher(unittest.TestCase):
                 "modificacao": "15/02/2020",
             }
         ]
-        client = self._setup_mock_periodos(mock_response)
+        client, _ = self._patch_http(mock_response)
         periodos = client.get_agregado_periodos(123)
 
         self.assertEqual(len(periodos), 1)
@@ -151,7 +165,7 @@ class TestFetcher(unittest.TestCase):
                 "modificacao": "15/04/2020",
             }
         ]
-        client = self._setup_mock_periodos(mock_response)
+        client, _ = self._patch_http(mock_response)
         periodos = client.get_agregado_periodos(123)
 
         self.assertEqual(len(periodos), 1)
@@ -175,7 +189,7 @@ class TestFetcher(unittest.TestCase):
                 "modificacao": "15/04/2020",
             }
         ]
-        client = self._setup_mock_periodos(mock_response)
+        client, _ = self._patch_http(mock_response)
         periodos = client.get_agregado_periodos(123)
 
         self.assertEqual(len(periodos), 1)
@@ -197,7 +211,7 @@ class TestFetcher(unittest.TestCase):
                 "modificacao": "15/07/2020",
             }
         ]
-        client = self._setup_mock_periodos(mock_response)
+        client, _ = self._patch_http(mock_response)
         periodos = client.get_agregado_periodos(123)
 
         self.assertEqual(len(periodos), 1)
@@ -219,7 +233,7 @@ class TestFetcher(unittest.TestCase):
                 "modificacao": "15/01/2021",
             }
         ]
-        client = self._setup_mock_periodos(mock_response)
+        client, _ = self._patch_http(mock_response)
         periodos = client.get_agregado_periodos(123)
 
         self.assertEqual(len(periodos), 1)
@@ -241,7 +255,7 @@ class TestFetcher(unittest.TestCase):
                 "modificacao": "15/01/2023",
             }
         ]
-        client = self._setup_mock_periodos(mock_response)
+        client, _ = self._patch_http(mock_response)
         periodos = client.get_agregado_periodos(123)
 
         self.assertEqual(len(periodos), 1)
@@ -263,7 +277,7 @@ class TestFetcher(unittest.TestCase):
                 "modificacao": "01/01/2020",
             }
         ]
-        client = self._setup_mock_periodos(mock_response)
+        client, _ = self._patch_http(mock_response)
         periodos = client.get_agregado_periodos(123)
 
         self.assertEqual(len(periodos), 1)
@@ -296,7 +310,7 @@ class TestFetcher(unittest.TestCase):
                 "modificacao": "15/01/2021",
             },
         ]
-        client = self._setup_mock_periodos(mock_response)
+        client, _ = self._patch_http(mock_response)
         periodos = client.get_agregado_periodos(123)
 
         self.assertEqual(len(periodos), 3)
@@ -313,14 +327,7 @@ class TestFetcher(unittest.TestCase):
             }
         ]
 
-        mock_httpx = sys.modules["httpx"]
-        mock_client_instance = mock_httpx.Client.return_value
-        mock_stream = mock_client_instance.stream.return_value
-        mock_stream.__enter__.return_value.iter_bytes.return_value = [
-            json.dumps(mock_response).encode("utf-8")
-        ]
-
-        client = SidraClient()
+        client, _ = self._patch_http(mock_response)
         localidades = client.get_agregado_localidades(123, "N1")
 
         self.assertEqual(len(localidades), 1)
@@ -330,17 +337,16 @@ class TestFetcher(unittest.TestCase):
     def test_get_acervo(self):
         mock_response = {"some": "data"}
 
-        mock_httpx = sys.modules["httpx"]
-        mock_client_instance = mock_httpx.Client.return_value
-        mock_stream = mock_client_instance.stream.return_value
-        mock_stream.__enter__.return_value.iter_bytes.return_value = [
-            json.dumps(mock_response).encode("utf-8")
-        ]
-
-        client = SidraClient()
+        client, _ = self._patch_http(mock_response)
         data = client.get_acervo(AcervoEnum.ASSUNTO)
 
         self.assertEqual(data, mock_response)
+
+    # ------------------------------------------------------------------
+    # JSON serialisation round-trip for sys.modules mock is no longer
+    # needed since we patch at the httpx.Client level.
+    # The json / sys.modules imports were only used by the old approach.
+    # ------------------------------------------------------------------
 
 
 if __name__ == "__main__":
