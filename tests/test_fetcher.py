@@ -42,7 +42,8 @@ class TestFetcher(unittest.TestCase):
     def _setup_mock_periodos(self, mock_response):
         mock_httpx = sys.modules["httpx"]
         mock_client_instance = mock_httpx.Client.return_value
-        mock_client_instance.stream.return_value.__enter__.return_value.iter_bytes.return_value = [
+        mock_stream = mock_client_instance.stream.return_value
+        mock_stream.__enter__.return_value.iter_bytes.return_value = [
             json.dumps(mock_response).encode("utf-8")
         ]
         return SidraClient()
@@ -58,7 +59,8 @@ class TestFetcher(unittest.TestCase):
 
         mock_httpx = sys.modules["httpx"]
         mock_client_instance = mock_httpx.Client.return_value
-        mock_client_instance.stream.return_value.__enter__.return_value.iter_bytes.return_value = [
+        mock_stream = mock_client_instance.stream.return_value
+        mock_stream.__enter__.return_value.iter_bytes.return_value = [
             json.dumps(mock_response).encode("utf-8")
         ]
 
@@ -103,7 +105,8 @@ class TestFetcher(unittest.TestCase):
 
         mock_httpx = sys.modules["httpx"]
         mock_client_instance = mock_httpx.Client.return_value
-        mock_client_instance.stream.return_value.__enter__.return_value.iter_bytes.return_value = [
+        mock_stream = mock_client_instance.stream.return_value
+        mock_stream.__enter__.return_value.iter_bytes.return_value = [
             json.dumps(mock_response).encode("utf-8")
         ]
 
@@ -312,7 +315,8 @@ class TestFetcher(unittest.TestCase):
 
         mock_httpx = sys.modules["httpx"]
         mock_client_instance = mock_httpx.Client.return_value
-        mock_client_instance.stream.return_value.__enter__.return_value.iter_bytes.return_value = [
+        mock_stream = mock_client_instance.stream.return_value
+        mock_stream.__enter__.return_value.iter_bytes.return_value = [
             json.dumps(mock_response).encode("utf-8")
         ]
 
@@ -328,7 +332,8 @@ class TestFetcher(unittest.TestCase):
 
         mock_httpx = sys.modules["httpx"]
         mock_client_instance = mock_httpx.Client.return_value
-        mock_client_instance.stream.return_value.__enter__.return_value.iter_bytes.return_value = [
+        mock_stream = mock_client_instance.stream.return_value
+        mock_stream.__enter__.return_value.iter_bytes.return_value = [
             json.dumps(mock_response).encode("utf-8")
         ]
 

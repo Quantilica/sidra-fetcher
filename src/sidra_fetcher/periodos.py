@@ -4,8 +4,8 @@
 """Period parsing utilities for IBGE time-series data.
 
 This module provides functions to parse period strings from the IBGE API and
-extract temporal information (frequency, start date, end date, etc.). It supports
-multiple Brazilian temporal formats including:
+extract temporal information (frequency, start date, end date, etc.).
+It supports multiple Brazilian temporal formats including:
 
 - Monthly periods (e.g., "janeiro de 2023")
 - Quarterly periods (e.g., "1º trimestre de 2023")
@@ -16,9 +16,8 @@ multiple Brazilian temporal formats including:
 
 Typical usage:
 
-    >>> from sidra_fetcher.periodos import parse_period
-    >>> raw_period = {"id": "202301", "literals": ["janeiro de 2023", "1/2023"]}
-    >>> parsed = parse_period(raw_period)
+    >>> p = {"id": "202301", "literals": ["janeiro de 2023", "1/2023"]}
+    >>> parsed = parse_period(p)
     >>> print(parsed["frequency"])  # "monthly"
     >>> print(parsed["start_date"])  # datetime.datetime(2023, 1, 1)
 """
@@ -72,7 +71,8 @@ _API_PERIODICIDADE_TO_FREQUENCIAS: dict[str, set[str]] = {
 
 
 def expected_periodo_frequencias(api_periodicidade: str | None) -> set[str]:
-    """Map an IBGE agregado `periodicidade.frequencia` to canonical period frequencies.
+    """Map an IBGE agregado `periodicidade.frequencia` to canonical
+    period frequencies.
 
     Returns the set of `periodo.frequencia` values that periods of an agregado
     with the given API periodicidade are expected to have. Returns an empty set

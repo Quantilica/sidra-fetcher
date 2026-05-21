@@ -115,27 +115,21 @@ def get_parser() -> argparse.ArgumentParser:
     agg_parser = list_sub.add_parser(
         "agregados", help="Listar agregados de uma pesquisa."
     )
-    agg_parser.add_argument(
-        "pesquisa_id", type=int, help="ID da pesquisa."
-    )
+    agg_parser.add_argument("pesquisa_id", type=int, help="ID da pesquisa.")
     agg_parser.set_defaults(func=handle_list_agregados)
 
     # info
     info_parser = subparsers.add_parser(
         "info", help="Exibir metadados de um agregado."
     )
-    info_parser.add_argument(
-        "agregado_id", type=int, help="ID do agregado."
-    )
+    info_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
     info_parser.set_defaults(func=handle_info)
 
     # periods
     p_parser = subparsers.add_parser(
         "periods", help="Listar períodos de um agregado."
     )
-    p_parser.add_argument(
-        "agregado_id", type=int, help="ID do agregado."
-    )
+    p_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
     p_parser.set_defaults(func=handle_periods)
 
     return parser

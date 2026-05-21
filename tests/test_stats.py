@@ -99,7 +99,7 @@ class TestStats(unittest.TestCase):
 
     def test_get_n_dimensoes(self):
         agregado = self.create_dummy_agregado()
-        # C1 has 2 categories, C2 has 3 categories. Total dimensions = 2 * 3 = 6
+        # C1 has 2 categories, C2 has 3. Total dimensions = 2 * 3 = 6
         n_dim = get_n_dimensoes(agregado)
         self.assertEqual(n_dim, 6)
 

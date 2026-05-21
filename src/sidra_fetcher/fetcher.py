@@ -145,7 +145,7 @@ class SidraClient:
     def get_agregado_localidades(
         self, agregado_id: int, localidades_nivel: str
     ) -> list[Localidade]:
-        """Fetch localidades for an aggregate filtered by territorial levels."""
+        """Fetch aggregate localidades filtered by territorial levels."""
         url_localidades = build_url_localidades(agregado_id, localidades_nivel)
         data = self.get(url_localidades)
         return [
@@ -161,7 +161,9 @@ class SidraClient:
         ]
 
     def get_agregado(self, agregado_id: int) -> Agregado:
-        """Fetch a complete :class:`Agregado` including periods and localidades."""
+        """Fetch a complete :class:`Agregado` including periods and
+        localidades.
+        """
         with log_step(
             logger, "fetch-agregado-complete", agregado_id=agregado_id
         ):
@@ -197,7 +199,9 @@ class SidraClient:
 
 
 class AsyncSidraClient:
-    """Async HTTP client for interacting with IBGE's agregados and SIDRA APIs."""
+    """Async HTTP client for interacting with IBGE's agregados and
+    SIDRA APIs.
+    """
 
     def __init__(self, timeout: int = 60) -> None:
         self.client = AsyncHttpClient(timeout=timeout)
@@ -309,7 +313,9 @@ class AsyncSidraClient:
         ]
 
     async def get_agregado(self, agregado_id: int) -> Agregado:
-        """Fetch a complete :class:`Agregado` including periods and localidades."""
+        """Fetch a complete :class:`Agregado` including periods and
+        localidades.
+        """
         with log_step(
             logger, "fetch-agregado-complete-async", agregado_id=agregado_id
         ):

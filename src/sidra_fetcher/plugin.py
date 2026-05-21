@@ -72,9 +72,7 @@ def list_agregados(
     _setup_logging(verbose)
     with SidraClient() as client:
         pesquisas = client.get_indice_pesquisas_agregados()
-        pesquisa = next(
-            (p for p in pesquisas if p.id == pesquisa_id), None
-        )
+        pesquisa = next((p for p in pesquisas if p.id == pesquisa_id), None)
 
     if not pesquisa:
         console.print(

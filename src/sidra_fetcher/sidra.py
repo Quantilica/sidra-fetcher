@@ -122,9 +122,12 @@ class Parametro:
         periodos: list[str],
         classificacoes: dict[str, list[str]],
         cabecalho: bool = True,
-        formato: Formato = Formato.A,  # Padrão é "a" (códigos e nomes dos descritores)
-        decimais: dict[str, Precisao] = {"": Precisao.M},
+        # Padrão é "a" (códigos e nomes dos descritores)
+        formato: Formato = Formato.A,
+        decimais: dict[str, Precisao] = None,
     ) -> None:
+        if decimais is None:
+            decimais = {"": Precisao.M}
         self.agregado = agregado
         self.territorios = territorios
         self.variaveis = variaveis
@@ -309,7 +312,8 @@ def parse_header(url: str) -> tuple[str, bool]:
 
 
 def parse_format(url: str) -> tuple[str, Formato]:
-    """Parse the `/f` (format) segment and return the matching :class:`Formato`.
+    """Parse the `/f` (format) segment and return the matching
+    :class:`Formato`.
 
     Returns a tuple ``(raw_match, formato_enum)``. If the segment is
     missing this returns an empty string and ``Formato.A`` as default.

@@ -10,11 +10,13 @@ IBGE agregados API into typed Python dataclasses. It includes utilities for:
 - Reading period information into :class:`Periodo` lists
 - Reading locality data into :class:`Localidade` lists
 - Flattening nested metadata structures for easier analysis
-- Generating cross-product metadata combinations from variables and classifications
+- Generating cross-product metadata combinations from variables and
+  classifications
 
 The flattening functions are particularly useful for converting hierarchical
 aggregate metadata into tabular formats suitable for data analysis, where each
-row represents a unique combination of variable, classifications, and categories.
+row represents a unique combination of variable, classifications, and
+categories.
 
 Typical usage:
 
@@ -73,28 +75,34 @@ def _iter_classificacoes_metadata(
 ) -> Generator[
     dict[Any | str, Any | int] | dict[Any | str, Any] | Any, None, None
 ]:
-    """Recursively iterate through classifications to generate metadata combinations.
+    """Recursively iterate through classifications to generate metadata
+    combinations.
 
-    This internal function traverses the classification hierarchy of an aggregate,
-    generating all possible combinations of categories across multiple classification
-    dimensions. Each yielded dictionary contains metadata for one unique combination.
+    This internal function traverses the classification hierarchy of an
+    aggregate, generating all possible combinations of categories across
+    multiple classification dimensions. Each yielded dictionary contains
+    metadata for one unique combination.
 
-    The function recursively processes each classification level, creating cartesian
-    products of categories. For each category, it appends classification and category
-    identifiers and names to the metadata dictionary using indexed keys (D4C, D4N,
-    C4C, C4N for dimension 4, D5C, D5N, C5C, C5N for dimension 5, etc.).
+    The function recursively processes each classification level, creating
+    cartesian products of categories. For each category, it appends
+    classification and category identifiers and names to the metadata
+    dictionary using indexed keys (D4C, D4N, C4C, C4N for dimension 4,
+    D5C, D5N, C5C, C5N for dimension 5, etc.).
 
     Args:
-        aggregate_metadata: The complete aggregate metadata dictionary containing
-            a 'classificacoes' key with a list of classification objects.
-        metadata: The current metadata dictionary being built, containing fields
-            like aggregate name, survey, subject, variable info, etc.
-        i: Current classification index being processed (0-based). Defaults to 0.
+        aggregate_metadata: The complete aggregate metadata dictionary
+            containing a 'classificacoes' key with a list of classification
+            objects.
+        metadata: The current metadata dictionary being built, containing
+            fields like aggregate name, survey, subject, variable info, etc.
+        i: Current classification index being processed (0-based).
+            Defaults to 0.
         n: Current dimension number for key generation (4-based, as dimensions
             1-3 are reserved for other metadata). Defaults to 4.
 
     Yields:
-        dict: Metadata dictionaries representing each valid category combination.
+        dict: Metadata dictionaries representing each valid category
+            combination.
             Each dict includes:
             - All keys from the input metadata parameter
             - D{n}C: Classification ID for dimension n
@@ -153,7 +161,8 @@ def _iter_variaveis_metadata(
 ) -> Generator[
     dict[Any | str, Any | int] | dict[Any | str, Any] | Any, None, None
 ]:
-    """Iterate through variables and generate metadata for each variable-classification combination.
+    """Iterate through variables and generate metadata for each
+    variable-classification combination.
 
     This internal function processes all variables in an aggregate's metadata,
     delegating to :func:`_iter_classificacoes_metadata` to generate the full
@@ -164,13 +173,15 @@ def _iter_variaveis_metadata(
     yields all classification combinations for that variable.
 
     Args:
-        aggregate_metadata: The complete aggregate metadata dictionary containing
-            a 'variaveis' key with a list of variable objects.
-        metadata: Base metadata dictionary containing aggregate-level information
-            such as aggregate name, survey, subject, frequency, and URL.
+        aggregate_metadata: The complete aggregate metadata dictionary
+            containing a 'variaveis' key with a list of variable objects.
+        metadata: Base metadata dictionary containing aggregate-level
+            information such as aggregate name, survey, subject, frequency,
+            and URL.
 
     Yields:
-        dict: Metadata dictionaries for each variable-classification combination.
+        dict: Metadata dictionaries for each variable-classification
+            combination.
             Each includes:
             - All keys from the base metadata parameter
             - D4C: Variable ID (code)
@@ -204,17 +215,18 @@ def flatten_aggregate_metadata(
 ) -> Generator[
     dict[Any | str, Any | int] | dict[Any | str, Any] | Any, None, None
 ]:
-    """Flatten hierarchical aggregate metadata into a sequence of flat dictionaries.
+    """Flatten hierarchical aggregate metadata into a sequence of flat
+    dictionaries.
 
-    This function transforms complex, nested aggregate metadata from the IBGE API
-    into a flat, tabular structure suitable for data analysis. Each yielded dictionary
-    represents one unique combination of variable and classification categories,
-    forming a complete metadata record.
+    This function transforms complex, nested aggregate metadata from the
+    IBGE API into a flat, tabular structure suitable for data analysis.
+    Each yielded dictionary represents one unique combination of variable
+    and classification categories, forming a complete metadata record.
 
-    The flattening process extracts aggregate-level information (name, survey, subject,
-    frequency, URL) and combines it with every possible combination of variables and
-    their associated classification categories, creating a denormalized view of the
-    metadata.
+    The flattening process extracts aggregate-level information (name,
+    survey, subject, frequency, URL) and combines it with every possible
+    combination of variables and their associated classification
+    categories, creating a denormalized view of the metadata.
 
     This is particularly useful for:
     - Creating lookup tables for data interpretation
@@ -281,10 +293,10 @@ def flatten_surveys_metadata(
 ) -> list[dict[str, str | int]]:
     """Flatten surveys metadata into a simple list of survey-aggregate pairs.
 
-    This function transforms the hierarchical survey index (which contains surveys
-    with nested aggregate lists) into a flat list where each element represents
-    one survey-aggregate relationship. This makes it easier to iterate over all
-    aggregates across all surveys.
+    This function transforms the hierarchical survey index (which
+    contains surveys with nested aggregate lists) into a flat list where
+    each element represents one survey-aggregate relationship. This
+    makes it easier to iterate over all aggregates across all surveys.
 
     The function is useful for:
     - Creating aggregate inventories
@@ -293,14 +305,16 @@ def flatten_surveys_metadata(
     - Bulk processing of all aggregates
 
     Args:
-        surveys_metadata: A list of survey dictionaries as returned by the
-            get_indice_pesquisas_agregados endpoint. Each survey dict must have:
+        surveys_metadata: A list of survey dictionaries as returned by
+            the get_indice_pesquisas_agregados endpoint. Each survey
+            dict must have:
             - 'id': Survey identifier
             - 'nome': Survey name
             - 'agregados': List of aggregate dicts, each with 'id' and 'nome'
 
     Returns:
-        A list of dictionaries, each representing one survey-aggregate pair with:
+        A list of dictionaries, each representing one survey-aggregate
+        pair with:
             - pesquisa_id: Survey identifier (string or int)
             - pesquisa: Survey name (string)
             - agregado_id: Aggregate identifier (int)
@@ -335,21 +349,22 @@ def flatten_surveys_metadata(
 def read_metadados(data: dict[str, Any]) -> Agregado:
     """Parse raw aggregate metadata JSON into an Agregado dataclass instance.
 
-    This function transforms the raw metadata dictionary returned by the IBGE
-    agregados metadata endpoint into a fully-typed :class:`Agregado` object with
-    all nested structures (territorial levels, variables, classifications, categories)
-    properly instantiated as dataclasses.
+    This function transforms the raw metadata dictionary returned by the
+    IBGE agregados metadata endpoint into a fully-typed :class:`Agregado`
+    object with all nested structures (territorial levels, variables,
+    classifications, categories) properly instantiated as dataclasses.
 
     The function handles the conversion of:
     - Territorial level information into AgregadoNivelTerritorial
     - Variables list into Variavel instances
-    - Classifications and their categories into nested Classificacao and Categoria objects
+    - Classifications and their categories into nested Classificacao and
+      Categoria objects
     - Survey information into Pesquisa objects
     - Periodicity data into Periodicidade objects
 
-    Note that the returned Agregado will have empty lists for 'periodos' and
-    'localidades' - these should be populated separately using :func:`read_periodos`
-    and :func:`read_localidades`.
+    Note that the returned Agregado will have empty lists for 'periodos'
+    and 'localidades' - these should be populated separately using
+    :func:`read_periodos` and :func:`read_localidades`.
 
     Args:
         data: Raw metadata dictionary from the IBGE API containing keys:
@@ -359,14 +374,15 @@ def read_metadados(data: dict[str, Any]) -> Agregado:
             - 'pesquisa': Survey name (str)
             - 'assunto': Subject/topic (str)
             - 'periodicidade': Dict with frequency info
-            - 'nivelTerritorial': Dict with 'Administrativo', 'Especial', 'IBGE' keys
+            - 'nivelTerritorial': Dict with 'Administrativo', 'Especial',
+              'IBGE' keys
             - 'variaveis': List of variable dicts
             - 'classificacoes': List of classification dicts
 
     Returns:
-        Agregado: A fully instantiated Agregado dataclass with typed nested structures.
-            The periodos and localidades fields will be empty lists and should be
-            populated separately if needed.
+        Agregado: A fully instantiated Agregado dataclass with typed
+            nested structures. The periodos and localidades fields will
+            be empty lists and should be populated separately if needed.
 
     Example:
         >>> raw_data = client.get_agregado_metadata(1705)
@@ -442,8 +458,10 @@ def read_periodos(data: list[dict[str, Any]]) -> list[Periodo]:
     Args:
         data: A list of period dictionaries from the IBGE API, each containing:
             - 'id': Period identifier (str), e.g., '202301' for January 2023
-            - 'literals': List of human-readable period representations (list[str])
-            - 'modificacao': Last modification date as string in 'dd/mm/yyyy' format
+            - 'literals': List of human-readable period representations
+              (list[str])
+            - 'modificacao': Last modification date as string in
+              'dd/mm/yyyy' format
 
     Returns:
         list[Periodo]: A list of Periodo instances with:
@@ -504,8 +522,10 @@ def read_localidades(data: list[dict[str, Any]]) -> list[Localidade]:
     each geographic unit.
 
     Args:
-        data: A list of locality dictionaries from the IBGE API, each containing:
-            - 'id': Locality identifier (str), e.g., '3550308' for São Paulo city
+        data: A list of locality dictionaries from the IBGE API,
+            each containing:
+            - 'id': Locality identifier (str), e.g., '3550308' for
+              São Paulo city
             - 'nome': Locality name (str), e.g., 'São Paulo'
             - 'nivel': Dictionary with territorial level info:
                 - 'id': Level identifier (str), e.g., 'N6' for municipality
