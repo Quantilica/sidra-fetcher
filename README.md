@@ -18,7 +18,7 @@ Com [uv](https://github.com/astral-sh/uv):
 uv add "git+https://github.com/Quantilica/sidra-fetcher.git"
 ```
 
-**Requisitos:** Python 3.13+
+**Requisitos:** Python 3.12+
 
 ## Interface de Linha de Comando (CLI)
 
