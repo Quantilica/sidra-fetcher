@@ -5,12 +5,10 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Annotated
 
 import typer
-from rich.console import Console
-from rich.logging import RichHandler
+from quantilica_core.cli import get_console, setup_rich_logging
 from rich.panel import Panel
 from rich.table import Table
 
@@ -19,22 +17,7 @@ from sidra_fetcher.fetcher import SidraClient
 app = typer.Typer(help="Interface para as APIs SIDRA/Agregados do IBGE.")
 list_sub = typer.Typer(help="Listar pesquisas e agregados do IBGE.")
 app.add_typer(list_sub, name="list")
-console = Console()
-
-
-def _setup_logging(verbose: bool) -> None:
-    """Configura logging via RichHandler para não quebrar barras de progresso.
-
-    verbose=False → WARNING apenas; verbose=True → DEBUG via Rich console.
-    """
-    level = logging.DEBUG if verbose else logging.WARNING
-    logging.basicConfig(
-        level=level,
-        format="%(message)s",
-        datefmt="[%X]",
-        handlers=[RichHandler(console=console, show_path=False)],
-        force=True,
-    )
+console = get_console()
 
 
 @list_sub.command("pesquisas")
@@ -44,7 +27,7 @@ def list_pesquisas(
     ] = False,
 ) -> None:
     """Listar todas as pesquisas disponíveis no sistema de agregados."""
-    _setup_logging(verbose)
+    setup_rich_logging(verbose, console=console)
     with SidraClient() as client:
         pesquisas = client.get_indice_pesquisas_agregados()
 
@@ -69,7 +52,7 @@ def list_agregados(
     ] = False,
 ) -> None:
     """Listar todos os agregados de uma pesquisa específica."""
-    _setup_logging(verbose)
+    setup_rich_logging(verbose, console=console)
     with SidraClient() as client:
         pesquisas = client.get_indice_pesquisas_agregados()
         pesquisa = next((p for p in pesquisas if p.id == pesquisa_id), None)
@@ -102,7 +85,7 @@ def info(
     ] = False,
 ) -> None:
     """Exibir metadados detalhados de um agregado."""
-    _setup_logging(verbose)
+    setup_rich_logging(verbose, console=console)
     with SidraClient() as client:
         try:
             metadados = client.get_agregado_metadados(agregado_id)
@@ -152,7 +135,7 @@ def periods(
     ] = False,
 ) -> None:
     """Listar os períodos disponíveis para um agregado."""
-    _setup_logging(verbose)
+    setup_rich_logging(verbose, console=console)
     with SidraClient() as client:
         try:
             periodos = client.get_agregado_periodos(agregado_id)
