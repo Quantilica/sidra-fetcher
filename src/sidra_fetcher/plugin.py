@@ -22,9 +22,7 @@ console = get_console()
 
 @list_sub.command("pesquisas")
 def list_pesquisas(
-    verbose: Annotated[
-        bool, typer.Option("--verbose", help="Logs detalhados")
-    ] = False,
+    verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
     """Listar todas as pesquisas disponíveis no sistema de agregados."""
     setup_rich_logging(verbose, console=console)
@@ -44,12 +42,8 @@ def list_pesquisas(
 
 @list_sub.command("agregados")
 def list_agregados(
-    pesquisa_id: Annotated[
-        int, typer.Argument(help="ID da pesquisa (ex: 73)")
-    ],
-    verbose: Annotated[
-        bool, typer.Option("--verbose", help="Logs detalhados")
-    ] = False,
+    pesquisa_id: Annotated[int, typer.Argument(help="ID da pesquisa (ex: 73)")],
+    verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
     """Listar todos os agregados de uma pesquisa específica."""
     setup_rich_logging(verbose, console=console)
@@ -58,14 +52,10 @@ def list_agregados(
         pesquisa = next((p for p in pesquisas if p.id == pesquisa_id), None)
 
     if not pesquisa:
-        console.print(
-            f"[red]Erro:[/red] Pesquisa {pesquisa_id} não encontrada."
-        )
+        console.print(f"[red]Erro:[/red] Pesquisa {pesquisa_id} não encontrada.")
         raise typer.Exit(1)
 
-    table = Table(
-        title=f"Agregados da Pesquisa: {pesquisa.nome}", show_header=True
-    )
+    table = Table(title=f"Agregados da Pesquisa: {pesquisa.nome}", show_header=True)
     table.add_column("ID", style="cyan")
     table.add_column("Nome", style="green")
 
@@ -77,12 +67,8 @@ def list_agregados(
 
 @app.command("info")
 def info(
-    agregado_id: Annotated[
-        int, typer.Argument(help="ID do agregado (ex: 1612)")
-    ],
-    verbose: Annotated[
-        bool, typer.Option("--verbose", help="Logs detalhados")
-    ] = False,
+    agregado_id: Annotated[int, typer.Argument(help="ID do agregado (ex: 1612)")],
+    verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
     """Exibir metadados detalhados de um agregado."""
     setup_rich_logging(verbose, console=console)
@@ -95,15 +81,12 @@ def info(
 
     console.print(
         Panel(
-            f"[bold cyan]{metadados.nome}[/bold cyan]\n"
-            f"[dim]{metadados.assunto}[/dim]",
+            f"[bold cyan]{metadados.nome}[/bold cyan]\n[dim]{metadados.assunto}[/dim]",
             title=f"Agregado {metadados.id}",
         )
     )
 
-    v_table = Table(
-        title="Variáveis", show_header=True, header_style="bold magenta"
-    )
+    v_table = Table(title="Variáveis", show_header=True, header_style="bold magenta")
     v_table.add_column("ID", style="cyan")
     v_table.add_column("Nome")
     v_table.add_column("Unidade", style="green")
@@ -127,12 +110,8 @@ def info(
 
 @app.command("periods")
 def periods(
-    agregado_id: Annotated[
-        int, typer.Argument(help="ID do agregado (ex: 1612)")
-    ],
-    verbose: Annotated[
-        bool, typer.Option("--verbose", help="Logs detalhados")
-    ] = False,
+    agregado_id: Annotated[int, typer.Argument(help="ID do agregado (ex: 1612)")],
+    verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
     """Listar os períodos disponíveis para um agregado."""
     setup_rich_logging(verbose, console=console)
@@ -143,9 +122,7 @@ def periods(
             console.print(f"[red]Erro ao buscar períodos:[/red] {e}")
             raise typer.Exit(1) from e
 
-    table = Table(
-        title=f"Períodos para Agregado {agregado_id}", show_header=True
-    )
+    table = Table(title=f"Períodos para Agregado {agregado_id}", show_header=True)
     table.add_column("ID", style="cyan")
     table.add_column("Nome", style="green")
     table.add_column("Modificação", style="dim")

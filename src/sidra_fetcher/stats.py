@@ -51,10 +51,7 @@ def get_n_dimensoes(agregado: Agregado) -> int:
     """
     n_dimensoes = reduce(
         lambda x, y: x * y,
-        [
-            len(classificacao.categorias)
-            for classificacao in agregado.classificacoes
-        ],
+        [len(classificacao.categorias) for classificacao in agregado.classificacoes],
         1,
     )
     return n_dimensoes

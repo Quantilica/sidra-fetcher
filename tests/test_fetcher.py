@@ -40,9 +40,7 @@ def _make_client(mock_response: object) -> SidraClient:
     # Re-apply the patch on the already-created client's internal
     # HttpClient so subsequent calls also use our mock.
     client._mock_resp = mock_resp
-    client._mock_client_cls_patcher = patch(
-        "quantilica_core.http.httpx.Client"
-    )
+    client._mock_client_cls_patcher = patch("quantilica_core.http.httpx.Client")
     mock_client_cls2 = client._mock_client_cls_patcher.start()
     mock_inst2 = mock_client_cls2.return_value.__enter__.return_value
     mock_inst2.request.return_value = mock_resp
@@ -104,9 +102,7 @@ class TestFetcher(unittest.TestCase):
                 "Especial": [],
                 "IBGE": [],
             },
-            "variaveis": [
-                {"id": 1, "nome": "V1", "unidade": "u", "sumarizacao": []}
-            ],
+            "variaveis": [{"id": 1, "nome": "V1", "unidade": "u", "sumarizacao": []}],
             "classificacoes": [
                 {
                     "id": 1,

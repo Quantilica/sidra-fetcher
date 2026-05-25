@@ -82,9 +82,7 @@ class SidraClient:
     def get_agregado_metadados(self, agregado_id: int) -> Agregado:
         """Fetch metadata for a specific agregado."""
         url_metadados = build_url_metadados(agregado_id)
-        with log_step(
-            logger, "fetch-agregado-metadados", agregado_id=agregado_id
-        ):
+        with log_step(logger, "fetch-agregado-metadados", agregado_id=agregado_id):
             data = self.get(url_metadados)
             nivel_territorial = AgregadoNivelTerritorial(
                 administrativo=data["nivelTerritorial"]["Administrativo"],
@@ -164,9 +162,7 @@ class SidraClient:
         """Fetch a complete :class:`Agregado` including periods and
         localidades.
         """
-        with log_step(
-            logger, "fetch-agregado-complete", agregado_id=agregado_id
-        ):
+        with log_step(logger, "fetch-agregado-complete", agregado_id=agregado_id):
             agregado_metadados = self.get_agregado_metadados(agregado_id)
             agregado_periodos = self.get_agregado_periodos(agregado_id)
             agregado_localidades: list[Localidade] = []
@@ -316,9 +312,7 @@ class AsyncSidraClient:
         """Fetch a complete :class:`Agregado` including periods and
         localidades.
         """
-        with log_step(
-            logger, "fetch-agregado-complete-async", agregado_id=agregado_id
-        ):
+        with log_step(logger, "fetch-agregado-complete-async", agregado_id=agregado_id):
             agregado_metadados, agregado_periodos = await asyncio.gather(
                 self.get_agregado_metadados(agregado_id),
                 self.get_agregado_periodos(agregado_id),
@@ -329,10 +323,7 @@ class AsyncSidraClient:
                 + agregado_metadados.nivel_territorial.ibge
             )
             localidades_lists = await asyncio.gather(
-                *(
-                    self.get_agregado_localidades(agregado_id, nivel)
-                    for nivel in niveis
-                )
+                *(self.get_agregado_localidades(agregado_id, nivel) for nivel in niveis)
             )
             agregado_localidades: list[Localidade] = [
                 loc for locs in localidades_lists for loc in locs

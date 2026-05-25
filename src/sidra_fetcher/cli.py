@@ -30,9 +30,7 @@ def handle_list_agregados(args: argparse.Namespace):
     """Handle `list agregados`."""
     with SidraClient() as client:
         pesquisas = client.get_indice_pesquisas_agregados()
-        pesquisa = next(
-            (p for p in pesquisas if p.id == args.pesquisa_id), None
-        )
+        pesquisa = next((p for p in pesquisas if p.id == args.pesquisa_id), None)
 
     if not pesquisa:
         print(f"Erro: Pesquisa {args.pesquisa_id} não encontrada.")
@@ -119,16 +117,12 @@ def get_parser() -> argparse.ArgumentParser:
     agg_parser.set_defaults(func=handle_list_agregados)
 
     # info
-    info_parser = subparsers.add_parser(
-        "info", help="Exibir metadados de um agregado."
-    )
+    info_parser = subparsers.add_parser("info", help="Exibir metadados de um agregado.")
     info_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
     info_parser.set_defaults(func=handle_info)
 
     # periods
-    p_parser = subparsers.add_parser(
-        "periods", help="Listar períodos de um agregado."
-    )
+    p_parser = subparsers.add_parser("periods", help="Listar períodos de um agregado.")
     p_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
     p_parser.set_defaults(func=handle_periods)
 

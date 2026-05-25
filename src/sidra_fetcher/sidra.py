@@ -205,10 +205,7 @@ class Parametro:
 
         if len(self.decimais) >= 2:
             d = "/d/" + ",".join(
-                [
-                    f"v{key}%20{value.value}"
-                    for key, value in self.decimais.items()
-                ]
+                [f"v{key}%20{value.value}" for key, value in self.decimais.items()]
             )
         elif len(self.decimais) == 1:
             precisao = self.decimais.get("", Precisao.M)
@@ -375,8 +372,7 @@ def parse_classifications(url: str) -> tuple[list[str], dict[str, list[str]]]:
     c = re.findall(r"(\/c\d+\/)(all|allxt|\d+(,\d+)*)", url)
     c = ["".join(g) for g in c]
     classifications = {
-        cat.strip("c"): [select]
-        for _, cat, select in [i.split("/") for i in c]
+        cat.strip("c"): [select] for _, cat, select in [i.split("/") for i in c]
     }
 
     return c, classifications

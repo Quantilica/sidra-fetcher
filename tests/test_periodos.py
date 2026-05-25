@@ -221,9 +221,7 @@ class TestReaderPeriodos(unittest.TestCase):
 
 class TestExpectedPeriodoFrequencias(unittest.TestCase):
     def test_mensal(self):
-        self.assertEqual(
-            expected_periodo_frequencias("mensal"), {FREQUENCIA_MENSAL}
-        )
+        self.assertEqual(expected_periodo_frequencias("mensal"), {FREQUENCIA_MENSAL})
 
     def test_trimestral(self):
         self.assertEqual(

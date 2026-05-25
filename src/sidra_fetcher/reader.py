@@ -72,9 +72,7 @@ def _iter_classificacoes_metadata(
     metadata: dict,
     i: int = 0,
     n: int = 4,
-) -> Generator[
-    dict[Any | str, Any | int] | dict[Any | str, Any] | Any, None, None
-]:
+) -> Generator[dict[Any | str, Any | int] | dict[Any | str, Any] | Any, None, None]:
     """Recursively iterate through classifications to generate metadata
     combinations.
 
@@ -158,9 +156,7 @@ def _iter_classificacoes_metadata(
 def _iter_variaveis_metadata(
     aggregate_metadata: dict,
     metadata: dict,
-) -> Generator[
-    dict[Any | str, Any | int] | dict[Any | str, Any] | Any, None, None
-]:
+) -> Generator[dict[Any | str, Any | int] | dict[Any | str, Any] | Any, None, None]:
     """Iterate through variables and generate metadata for each
     variable-classification combination.
 
@@ -212,9 +208,7 @@ def _iter_variaveis_metadata(
 
 def flatten_aggregate_metadata(
     aggregate_metadata: dict,
-) -> Generator[
-    dict[Any | str, Any | int] | dict[Any | str, Any] | Any, None, None
-]:
+) -> Generator[dict[Any | str, Any | int] | dict[Any | str, Any] | Any, None, None]:
     """Flatten hierarchical aggregate metadata into a sequence of flat
     dictionaries.
 

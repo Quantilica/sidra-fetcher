@@ -47,9 +47,7 @@ class TestStats(unittest.TestCase):
                 Classificacao(
                     id=1,
                     nome="C1",
-                    sumarizacao=ClassificacaoSumarizacao(
-                        status=True, excecao=[]
-                    ),
+                    sumarizacao=ClassificacaoSumarizacao(status=True, excecao=[]),
                     categorias=[
                         Categoria(id=10, nome="Cat1", unidade=None, nivel=1),
                         Categoria(id=11, nome="Cat2", unidade=None, nivel=1),
@@ -58,9 +56,7 @@ class TestStats(unittest.TestCase):
                 Classificacao(
                     id=2,
                     nome="C2",
-                    sumarizacao=ClassificacaoSumarizacao(
-                        status=True, excecao=[]
-                    ),
+                    sumarizacao=ClassificacaoSumarizacao(status=True, excecao=[]),
                     categorias=[
                         Categoria(id=20, nome="Cat3", unidade=None, nivel=1),
                         Categoria(id=21, nome="Cat4", unidade=None, nivel=1),

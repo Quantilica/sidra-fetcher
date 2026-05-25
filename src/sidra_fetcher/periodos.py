@@ -248,9 +248,7 @@ def parse_period(periodo: dict[str, str]):
         start_date = dt.datetime(year, 1, 1).date()
         end_date = dt.datetime(end_year, 12, 31).date()
 
-        frequency = (
-            FREQUENCIA_ANUAL if year == end_year else FREQUENCIA_PLURIANUAL
-        )
+        frequency = FREQUENCIA_ANUAL if year == end_year else FREQUENCIA_PLURIANUAL
 
         return {
             "id": period_id,

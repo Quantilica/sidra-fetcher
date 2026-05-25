@@ -72,9 +72,7 @@ class TestSidra(unittest.TestCase):
         self.assertEqual(parsed["classifications"], {"844": ["all"]})
         self.assertEqual(parsed["v"], "/v/all")
         self.assertEqual(parsed["variables"], ["all"])
-        self.assertEqual(
-            parsed["d"], "/d/v1394%202,v1395%202,v1396%202,v10008%205"
-        )
+        self.assertEqual(parsed["d"], "/d/v1394%202,v1395%202,v1396%202,v10008%205")
         self.assertEqual(
             parsed["decimal"],
             {
