@@ -21,7 +21,7 @@ console = get_console()
 
 
 @list_sub.command("pesquisas")
-def list_pesquisas(
+def cmd_list_pesquisas(
     verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
     """Listar todas as pesquisas disponíveis no sistema de agregados."""
@@ -41,7 +41,7 @@ def list_pesquisas(
 
 
 @list_sub.command("agregados")
-def list_agregados(
+def cmd_list_agregados(
     pesquisa_id: Annotated[int, typer.Argument(help="ID da pesquisa (ex: 73)")],
     verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
@@ -66,7 +66,7 @@ def list_agregados(
 
 
 @app.command("info")
-def info(
+def cmd_info(
     agregado_id: Annotated[int, typer.Argument(help="ID do agregado (ex: 1612)")],
     verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
@@ -109,7 +109,7 @@ def info(
 
 
 @app.command("periods")
-def periods(
+def cmd_periods(
     agregado_id: Annotated[int, typer.Argument(help="ID do agregado (ex: 1612)")],
     verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:

@@ -129,12 +129,13 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main():
+def main(argv: list[str] | None = None) -> None:
     """Main entry point."""
     parser = get_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     configure_cli_logging(verbose=args.verbose)
     if not args.verbose:
+        logging.getLogger("quantilica_core").setLevel(logging.WARNING)
         logging.getLogger("sidra_fetcher").setLevel(logging.WARNING)
     args.func(args)
 
