@@ -45,7 +45,7 @@ sidra-fetcher periods 1612
 Se o `quantilica-cli` estiver instalado no mesmo ambiente, o `sidra-fetcher` será detectado automaticamente como um plugin:
 
 ```bash
-quantilica fetch sidra info 1612
+quantilica sidra info 1612
 ```
 
 ---
