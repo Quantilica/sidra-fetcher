@@ -1,6 +1,6 @@
 [project]
 name = "sidra-fetcher"
-version = "0.7.0"
+version = "0.7.1"
 description = "A Python package for fetching data from IBGE's SIDRA and Agregados APIs"
 readme = "README.md"
 authors = [

@@ -253,7 +253,7 @@ def get_sidra_url_request_period(
     Given a :class:`Parametro` instance, return a URL where the
     ``periods`` segment is replaced with the provided ``period_id``.
     """
-    p = parameter.assign("periods", [str(period_id)])
+    p = parameter.assign("periodos", [str(period_id)])
     url = p.url()
     return url
 
