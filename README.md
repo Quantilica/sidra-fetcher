@@ -375,8 +375,7 @@ src/sidra_fetcher/
 ├── periodos.py          — análise de strings de período e detecção de frequência
 ├── reader.py            — parsers JSON → dataclass e achatamento de metadados
 ├── sidra.py             — construtor de URL SIDRA (Parametro) e parsers
-├── stats.py             — estatísticas de tamanho e dimensões
-└── api_undocumented.py  — URLs de endpoints não documentados do IBGE
+└── stats.py             — estatísticas de tamanho e dimensões
 ```
 
 ---
