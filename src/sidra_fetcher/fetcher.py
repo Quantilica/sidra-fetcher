@@ -15,8 +15,8 @@ typed structures suitable for further processing by the package.
 import asyncio
 from typing import Any
 
-from quantilica_core.http import AsyncHttpClient, HttpClient
-from quantilica_core.logging import log_step
+from quantilica.core.http import AsyncHttpClient, HttpClient
+from quantilica.core.logging import log_step
 
 from . import logger
 from .agregados import (

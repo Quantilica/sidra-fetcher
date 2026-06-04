@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from quantilica_core.storage import LocalStorage
+from quantilica.core.storage import LocalStorage
 
 
 class DataRepository:

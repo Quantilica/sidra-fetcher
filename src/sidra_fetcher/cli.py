@@ -9,7 +9,7 @@ import argparse
 import logging
 import sys
 
-from quantilica_core.logging import configure_cli_logging
+from quantilica.core.logging import configure_cli_logging
 
 from sidra_fetcher import __version__
 from sidra_fetcher.fetcher import SidraClient
@@ -135,7 +135,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     configure_cli_logging(verbose=args.verbose)
     if not args.verbose:
-        logging.getLogger("quantilica_core").setLevel(logging.WARNING)
+        logging.getLogger("quantilica.core").setLevel(logging.WARNING)
         logging.getLogger("sidra_fetcher").setLevel(logging.WARNING)
     try:
         args.func(args)

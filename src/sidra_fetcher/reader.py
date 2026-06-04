@@ -35,9 +35,9 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
-import quantilica_core.metadata as core_meta
-from quantilica_core.manifests import DownloadManifest
-from quantilica_core.storage import LocalStorage
+import quantilica.core.metadata as core_meta
+from quantilica.core.manifests import DownloadManifest
+from quantilica.core.storage import LocalStorage
 
 from .agregados import (
     Agregado,
