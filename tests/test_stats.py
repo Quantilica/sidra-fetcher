@@ -19,6 +19,7 @@ from sidra_fetcher.agregados import (
 )
 from sidra_fetcher.stats import (
     calculate_aggregate,
+    estimate_values,
     get_n_dimensoes,
     get_stat_localidades,
 )
@@ -129,6 +130,42 @@ class TestStats(unittest.TestCase):
         # variavel_size = max(n_dimensoes, 1)
         # variavel_size = 6
         self.assertEqual(result["variavel_size"], 6)
+
+    def test_estimate_values(self):
+        result = estimate_values(
+            n_localidades=3,
+            n_variaveis=2,
+            categoria_counts=[2, 3],
+            n_periodos=2,
+        )
+        self.assertEqual(result["n_dimensoes"], 6)
+        self.assertEqual(result["period_size"], 36)
+        self.assertEqual(result["total_size"], 72)
+
+    def test_estimate_values_no_classifications(self):
+        # Sem classificações o fator de dimensões é 1
+        result = estimate_values(
+            n_localidades=27,
+            n_variaveis=1,
+            categoria_counts=[],
+            n_periodos=10,
+        )
+        self.assertEqual(result["n_dimensoes"], 1)
+        self.assertEqual(result["period_size"], 27)
+        self.assertEqual(result["total_size"], 270)
+
+    def test_estimate_values_matches_calculate_aggregate(self):
+        agregado = self.create_dummy_agregado()
+        aggregate = calculate_aggregate(agregado)
+        estimate = estimate_values(
+            n_localidades=aggregate["n_localidades"],
+            n_variaveis=aggregate["n_variaveis"],
+            categoria_counts=[len(c.categorias) for c in agregado.classificacoes],
+            n_periodos=aggregate["n_periodos"],
+        )
+        self.assertEqual(estimate["n_dimensoes"], aggregate["n_dimensoes"])
+        self.assertEqual(estimate["period_size"], aggregate["period_size"])
+        self.assertEqual(estimate["total_size"], aggregate["total_size"])
 
 
 if __name__ == "__main__":

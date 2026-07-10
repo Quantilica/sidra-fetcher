@@ -4,6 +4,7 @@
 import unittest
 
 from sidra_fetcher.sidra import (
+    SIDRA_API_VALUES_LIMIT,
     Parametro,
     Precisao,
     parameter_from_url,
@@ -57,6 +58,45 @@ class TestSidra(unittest.TestCase):
         p, periods = parse_periods(url)
         self.assertEqual(p, "/p/all")
         self.assertEqual(periods, ["all"])
+
+    def test_parse_periods_monthly_codes(self):
+        p, periods = parse_periods("/t/1705/p/202301,202302/v/all")
+        self.assertEqual(p, "/p/202301,202302")
+        self.assertEqual(periods, ["202301", "202302"])
+
+    def test_parse_periods_annual_codes(self):
+        p, periods = parse_periods("/t/1612/p/2010,2011/v/all")
+        self.assertEqual(p, "/p/2010,2011")
+        self.assertEqual(periods, ["2010", "2011"])
+
+    def test_parse_periods_monthly_range(self):
+        p, periods = parse_periods("/t/1705/p/201301-201312/v/all")
+        self.assertEqual(p, "/p/201301-201312")
+        self.assertEqual(periods, ["201301-201312"])
+
+    def test_parse_periods_annual_range(self):
+        p, periods = parse_periods("/t/1612/p/2010-2015/v/all")
+        self.assertEqual(p, "/p/2010-2015")
+        self.assertEqual(periods, ["2010-2015"])
+
+    def test_parse_periods_mixed_codes_and_ranges(self):
+        p, periods = parse_periods("/t/1705/p/201201,201301-201312/v/all")
+        self.assertEqual(p, "/p/201201,201301-201312")
+        self.assertEqual(periods, ["201201", "201301-201312"])
+
+    def test_parse_periods_last_n(self):
+        p, periods = parse_periods("/t/1705/p/last%2012/v/all")
+        self.assertEqual(p, "/p/last%2012")
+        self.assertEqual(periods, ["last%2012"])
+
+    def test_parse_periods_missing(self):
+        p, periods = parse_periods("/t/1705/v/all")
+        self.assertEqual(p, "")
+        self.assertEqual(periods, [])
+
+    def test_values_limit_constant(self):
+        self.assertIsInstance(SIDRA_API_VALUES_LIMIT, int)
+        self.assertEqual(SIDRA_API_VALUES_LIMIT, 100_000)
 
     def test_parse_url(self):
         parsed = parse_url(url)

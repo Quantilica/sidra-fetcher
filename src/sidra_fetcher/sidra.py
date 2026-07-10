@@ -19,6 +19,12 @@ from typing import Any
 
 BASE_URL = "https://apisidra.ibge.gov.br/values"
 
+# Limite documentado da API SIDRA por requisição ao endpoint /values
+# ("A consulta aos dados é limitada a 100.000 valores." —
+# https://apisidra.ibge.gov.br/home/ajuda). O total de valores de uma
+# consulta é o produto das quantidades selecionadas em cada dimensão.
+SIDRA_API_VALUES_LIMIT = 100_000
+
 
 class Formato(Enum):
     """Enum para os formatos de saída do SIDRA."""
@@ -281,11 +287,17 @@ def parse_territories(url: str) -> tuple[list[str], dict[str, list[str]]]:
 def parse_periods(url: str) -> tuple[str, list[str]]:
     """Parse the `/p` (periods) segment from a SIDRA URL.
 
+    Supports the special selectors (``all``, ``first``, ``last``, with an
+    optional ``%20N`` count), 6-digit codes (``202301``), 4-digit annual
+    codes (``2023``), ranges (``201301-201312``, ``2010-2015``) and
+    comma-separated combinations of codes and ranges.
+
     Returns a tuple ``(raw_match, periods)`` where ``raw_match`` is the
     matched segment string (or empty string if not present) and
     ``periods`` is a list of individual period identifiers.
     """
-    p = re.search(r"/p/(all|(first|last(%20\d+|))|\d{6}(,\d{6})*)", url)
+    code = r"(?:\d{6}(?:-\d{6})?|\d{4}(?:-\d{4})?)"
+    p = re.search(rf"/p/(all|first(%20\d+)?|last(%20\d+)?|{code}(,{code})*)", url)
     if not p:
         return "", []
     p = p.group()
