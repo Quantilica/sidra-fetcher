@@ -9,13 +9,13 @@ Biblioteca Python para buscar e processar dados e metadados das APIs oficiais do
 ## Instalação
 
 ```bash
-pip install git+https://github.com/Quantilica/sidra-fetcher.git
+pip install sidra-fetcher
 ```
 
 Com [uv](https://github.com/astral-sh/uv):
 
 ```bash
-uv add "git+https://github.com/Quantilica/sidra-fetcher.git"
+uv add sidra-fetcher
 ```
 
 **Requisitos:** Python 3.12+
