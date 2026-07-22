@@ -10,8 +10,10 @@ import logging
 import sys
 
 from quantilica.core.logging import configure_cli_logging
+from quantilica.core.progress import batch_progress
 
 from sidra_fetcher import __version__
+from sidra_fetcher.download import describe_download_plan
 from sidra_fetcher.fetcher import SidraClient
 
 
@@ -83,6 +85,73 @@ def handle_periods(args: argparse.Namespace):
         print(f"{p.id:<10} {p.nome:<30} {p.modificacao.isoformat()}")
 
 
+def _parse_lista(valor: str | None) -> list[str] | None:
+    """Converte uma string separada por vírgulas em lista, ou None se ausente."""
+    if not valor:
+        return None
+    return [item.strip() for item in valor.split(",") if item.strip()]
+
+
+def _parse_classificacoes(items: list[str]) -> dict[str, list[str]] | None:
+    """Converte ``["ID=cat1,cat2", ...]`` em ``{"ID": ["cat1", "cat2"]}``."""
+    if not items:
+        return None
+    classificacoes: dict[str, list[str]] = {}
+    for item in items:
+        cid, _, categorias = item.partition("=")
+        classificacoes[cid.strip()] = [
+            c.strip() for c in categorias.split(",") if c.strip()
+        ]
+    return classificacoes
+
+
+def handle_download(args: argparse.Namespace):
+    """Handle `download`."""
+    filtros = {
+        "niveis_territoriais": _parse_lista(args.niveis),
+        "variaveis": _parse_lista(args.variaveis),
+        "periodos": _parse_lista(args.periodos),
+        "classificacoes": _parse_classificacoes(args.classificacao),
+    }
+
+    with SidraClient() as client:
+        try:
+            agregado = client.get_agregado(args.agregado_id)
+            chunks = client.plan_dados_agregado(
+                args.agregado_id, agregado=agregado, **filtros
+            )
+        except Exception as e:
+            print(f"Erro ao planejar download: {e}")
+            sys.exit(1)
+
+        resumo = describe_download_plan(chunks)
+        print(f"Agregado {agregado.id}: {agregado.nome}")
+        print(f"{'Nível':<8}{'Requests':<12}{'Valores estimados'}")
+        for nivel, d in resumo["por_nivel"].items():
+            print(f"{nivel:<8}{d['n_requests']:<12}{d['n_valores']}")
+        print(
+            f"\nTotal: {resumo['n_requests']} requests, "
+            f"{resumo['n_valores']} valores estimados."
+        )
+
+        if args.dry_run:
+            return
+
+        with batch_progress("Baixando", total=resumo["n_requests"]) as pbar:
+            paths = client.download_dados_agregado(
+                args.agregado_id,
+                args.output,
+                agregado=agregado,
+                max_workers=args.max_workers,
+                politeness_delay=args.delay,
+                on_chunk_done=lambda _chunk: pbar.update(1),
+                **filtros,
+            )
+
+    for p in paths:
+        print(f"Gravado: {p}")
+
+
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="sidra-fetcher",
@@ -125,6 +194,40 @@ def get_parser() -> argparse.ArgumentParser:
     p_parser = subparsers.add_parser("periods", help="Listar períodos de um agregado.")
     p_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
     p_parser.set_defaults(func=handle_periods)
+
+    # download
+    d_parser = subparsers.add_parser(
+        "download", help="Baixar todos os dados de um agregado."
+    )
+    d_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
+    d_parser.add_argument(
+        "-o", "--output", default="./sidra_data", help="Diretório de saída."
+    )
+    d_parser.add_argument(
+        "--niveis", help="Níveis territoriais (ex: N3,N6). Padrão: todos."
+    )
+    d_parser.add_argument(
+        "--variaveis", help="IDs de variáveis, separados por vírgula. Padrão: todas."
+    )
+    d_parser.add_argument(
+        "--periodos", help="IDs de períodos, separados por vírgula. Padrão: todos."
+    )
+    d_parser.add_argument(
+        "--classificacao",
+        action="append",
+        default=[],
+        help="ID=cat1,cat2 (repetível). Padrão: todas as categorias.",
+    )
+    d_parser.add_argument("--max-workers", type=int, default=4)
+    d_parser.add_argument(
+        "--delay", type=float, default=0.2, help="Pausa entre requests (segundos)."
+    )
+    d_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Só mostra o plano de download, sem baixar nada.",
+    )
+    d_parser.set_defaults(func=handle_download)
 
     return parser
 

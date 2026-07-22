@@ -13,6 +13,8 @@ typed structures suitable for further processing by the package.
 """
 
 import asyncio
+from collections.abc import Generator
+from pathlib import Path
 from typing import Any
 
 from quantilica.core.http import AsyncHttpClient, HttpClient
@@ -40,6 +42,12 @@ from .agregados import (
     build_url_metadados,
     build_url_periodos,
 )
+from .download import (
+    DownloadChunk,
+    download_agregado_dados,
+    iter_download_chunks,
+    plan_agregado_download,
+)
 from .reader import read_periodos
 
 
@@ -51,8 +59,12 @@ class SidraClient:
     aggregate objects from the API responses.
     """
 
-    def __init__(self, timeout: int = 60) -> None:
-        self.client = HttpClient(timeout=timeout)
+    def __init__(
+        self, timeout: int = 60, attempts: int = 3, retry_base_delay: float = 1.0
+    ) -> None:
+        self.client = HttpClient(
+            timeout=timeout, attempts=attempts, retry_base_delay=retry_base_delay
+        )
 
     def get(self, url: str) -> Any:
         """Fetch data from the given URL."""
@@ -184,6 +196,68 @@ class SidraClient:
         url_acervo = build_url_acervos(acervo)
         data = self.get(url_acervo)
         return data
+
+    def plan_dados_agregado(
+        self,
+        agregado_id: int,
+        *,
+        agregado: Agregado | None = None,
+        **filtros: Any,
+    ) -> list[DownloadChunk]:
+        """Plan the requests needed to download all data of an agregado.
+
+        Fetches full metadata (periods, localidades) via :meth:`get_agregado`
+        when ``agregado`` is not provided. See
+        :func:`sidra_fetcher.download.plan_agregado_download` for the
+        accepted ``filtros`` (``niveis_territoriais``, ``variaveis``,
+        ``periodos``, ``classificacoes``, ``formato``, ``decimais``, ``limit``).
+        """
+        if agregado is None:
+            agregado = self.get_agregado(agregado_id)
+        return plan_agregado_download(agregado, **filtros)
+
+    def iter_dados_agregado(
+        self,
+        agregado_id: int,
+        *,
+        agregado: Agregado | None = None,
+        politeness_delay: float = 0.0,
+        **filtros: Any,
+    ) -> Generator[tuple[DownloadChunk, list[dict]], None, None]:
+        """Yield ``(chunk, rows)`` one request at a time, sequentially.
+
+        Memory-safe for large tables — prefer this over
+        :meth:`get_dados_agregado` when the aggregate may have many rows.
+        """
+        chunks = self.plan_dados_agregado(agregado_id, agregado=agregado, **filtros)
+        yield from iter_download_chunks(self, chunks, politeness_delay=politeness_delay)
+
+    def get_dados_agregado(self, agregado_id: int, **filtros: Any) -> list[dict]:
+        """Download and merge all data of an agregado into a single list.
+
+        Not recommended for very large tables — use :meth:`iter_dados_agregado`
+        or :meth:`download_dados_agregado` instead.
+        """
+        linhas: list[dict] = []
+        cabecalho_escrito = False
+        for _chunk, rows in self.iter_dados_agregado(agregado_id, **filtros):
+            if not rows:
+                continue
+            if not cabecalho_escrito:
+                linhas.append(rows[0])
+                cabecalho_escrito = True
+            linhas.extend(rows[1:])
+        return linhas
+
+    def download_dados_agregado(
+        self, agregado_id: int, output_dir: str | Path, **kwargs: Any
+    ) -> list[Path]:
+        """Download all data of an agregado to NDJSON + manifest files.
+
+        See :func:`sidra_fetcher.download.download_agregado_dados` for the
+        accepted keyword arguments.
+        """
+        return download_agregado_dados(self, agregado_id, output_dir, **kwargs)
 
     def __enter__(self) -> "SidraClient":
         """Context manager enter: return the client instance."""
@@ -336,6 +410,25 @@ class AsyncSidraClient:
         """Fetch an `acervo` (collection) listing from the agregados API."""
         url_acervo = build_url_acervos(acervo)
         return await self.get(url_acervo)
+
+    async def plan_dados_agregado(
+        self,
+        agregado_id: int,
+        *,
+        agregado: Agregado | None = None,
+        **filtros: Any,
+    ) -> list[DownloadChunk]:
+        """Plan the requests needed to download all data of an agregado.
+
+        Pure computation (no extra I/O beyond fetching metadata when
+        ``agregado`` is not provided) — see
+        :func:`sidra_fetcher.download.plan_agregado_download` for the
+        accepted ``filtros``. Concurrent async execution of the plan is not
+        implemented; use :class:`SidraClient` for downloads.
+        """
+        if agregado is None:
+            agregado = await self.get_agregado(agregado_id)
+        return plan_agregado_download(agregado, **filtros)
 
     async def __aenter__(self) -> "AsyncSidraClient":
         """Async context manager enter: return the client instance."""

@@ -38,6 +38,10 @@ sidra-fetcher info 1612
 
 # Listar períodos disponíveis
 sidra-fetcher periods 1612
+
+# Baixar TODOS os dados de um agregado (ver seção dedicada abaixo)
+sidra-fetcher download 1705 --dry-run
+sidra-fetcher download 1705 -o ./sidra_data
 ```
 
 ### Integração com `quantilica-cli`
@@ -46,6 +50,7 @@ Se o `quantilica-cli` estiver instalado no mesmo ambiente, o `sidra-fetcher` ser
 
 ```bash
 quantilica sidra info 1612
+quantilica sidra download 1705 -o ./sidra_data
 ```
 
 ---
@@ -169,9 +174,92 @@ Valores disponíveis no `AcervoEnum`:
 
 ---
 
+## Baixando Todos os Dados de um Agregado
+
+A API SIDRA limita cada requisição ao endpoint `/values` a **100.000 valores**
+(`SIDRA_API_VALUES_LIMIT`, produto das quantidades selecionadas em cada
+dimensão: localidades × variáveis × categorias por classificação ×
+períodos). O `sidra-fetcher` descobre automaticamente todas as dimensões de
+um agregado (via metadados) e divide o download em quantas requisições forem
+necessárias para nunca ultrapassar esse limite — sem o usuário precisar
+saber de antemão o tamanho da tabela.
+
+Isso é um recurso **ad-hoc**: basta um `agregado_id` arbitrário, ao contrário
+do [`sidra-sql`](https://github.com/Quantilica/sidra-sql), que exige um
+pipeline curado (`fetch.toml`) por tabela. A ordem de divisão (chunking) é,
+em prioridade: **período → lote de localidades → variável → combinação de
+categorias de classificação** — cada nível territorial do agregado
+(administrativo, especial, ibge) é baixado **separadamente**.
+
+### Planejar antes de baixar
+
+```python
+from sidra_fetcher.fetcher import SidraClient
+from sidra_fetcher.download import describe_download_plan
+
+with SidraClient() as client:
+    chunks = client.plan_dados_agregado(1705)
+    resumo = describe_download_plan(chunks)
+    print(resumo)
+    # {'n_requests': 192, 'n_valores': 513792,
+    #  'por_nivel': {'N1': {...}, 'N6': {...}}}
+```
+
+Cada item de `chunks` é um `DownloadChunk(nivel_territorial, parametro, n_valores)`
+— `parametro` é o `Parametro` de `sidra_fetcher.sidra` pronto para virar URL.
+
+### Baixar os dados
+
+Três formas, dependendo do tamanho da tabela:
+
+```python
+# Tabelas pequenas: mescla tudo em uma lista única (mantém 1 cabeçalho).
+linhas = client.get_dados_agregado(1705)
+
+# Tabelas grandes: um chunk por vez, sem bufferizar tudo em memória.
+for chunk, linhas in client.iter_dados_agregado(1705):
+    ...
+
+# Grava em disco: um NDJSON + manifest (SHA-256) por nível territorial.
+paths = client.download_dados_agregado(1705, "./sidra_data", max_workers=4)
+```
+
+`download_dados_agregado` grava `dados_{nivel}.ndjson` (uma linha JSON por
+registro — a primeira é o cabeçalho, mantido uma única vez mesmo quando o
+download exige múltiplos requests) e `dados_{nivel}.ndjson.manifest.json`
+(mesma convenção de proveniência de `save_agregado`/`load_agregado`) para
+cada nível territorial efetivamente baixado.
+
+Todos os métodos aceitam restringir a seleção (por padrão, baixam tudo):
+
+```python
+client.plan_dados_agregado(
+    1705,
+    niveis_territoriais=["N3", "N6"],   # padrão: todos os níveis do agregado
+    variaveis=["355"],                   # padrão: todas
+    periodos=["202301", "202302"],       # padrão: todos
+    classificacoes={"315": ["7169"]},    # padrão: todas as categorias
+)
+```
+
+### Via CLI
+
+```bash
+# Só mostra o plano (requests e valores estimados por nível), sem baixar.
+sidra-fetcher download 1705 --dry-run
+
+# Baixa de fato, com concorrência e uma pequena pausa entre requests.
+sidra-fetcher download 1705 -o ./sidra_data --niveis N3,N6 --max-workers 4 --delay 0.5
+
+# Via quantilica-cli (mesmos argumentos)
+quantilica sidra download 1705 -o ./sidra_data
+```
+
+---
+
 ### `AsyncSidraClient` (assíncrono)
 
-Equivalente assíncrono do `SidraClient`. Todos os métodos são corrotinas. `get_agregado` busca metadados e períodos concorrentemente via `asyncio.gather`.
+Equivalente assíncrono do `SidraClient`. Todos os métodos são corrotinas. `get_agregado` busca metadados e períodos concorrentemente via `asyncio.gather`. Também expõe `plan_dados_agregado` (mesmo planejamento de chunking, sem I/O extra) — o download em si (`get_dados_agregado`/`iter_dados_agregado`/`download_dados_agregado`) está disponível apenas no `SidraClient` síncrono.
 
 ```python
 import asyncio
@@ -371,6 +459,7 @@ print(stats)
 src/sidra_fetcher/
 ├── __init__.py          — logger do pacote
 ├── agregados.py         — dataclasses e construtores de URL para a API Agregados
+├── download.py          — planejamento (chunking) e download completo de um agregado
 ├── fetcher.py           — SidraClient e AsyncSidraClient
 ├── periodos.py          — análise de strings de período e detecção de frequência
 ├── reader.py            — parsers JSON → dataclass e achatamento de metadados
