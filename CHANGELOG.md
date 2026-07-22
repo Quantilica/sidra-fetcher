@@ -26,7 +26,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - `SidraClient`/`AsyncSidraClient` aceitam `attempts`/`retry_base_delay` no
   construtor, repassados ao `HttpClient` interno.
 
-### Robustez do download
+### Corrigido
 
 - Limitador de taxa thread-safe: o `politeness_delay` agora é aplicado dentro do
   worker (não no laço de submit), evitando que respostas completas se acumulem na
