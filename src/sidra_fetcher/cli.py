@@ -201,7 +201,7 @@ def get_parser() -> argparse.ArgumentParser:
     )
     d_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
     d_parser.add_argument(
-        "-o", "--output", default="./sidra_data", help="Diretório de saída."
+        "-o", "--output", default="/data/sidra", help="Diretório de saída."
     )
     d_parser.add_argument(
         "--niveis", help="Níveis territoriais (ex: N3,N6). Padrão: todos."

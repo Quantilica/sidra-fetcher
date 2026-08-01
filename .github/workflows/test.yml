@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.13"]
+        python-version: ["3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
@@ -35,4 +35,4 @@ jobs:
           uv run ruff format --check src/ tests/
 
       - name: Run tests
-        run: uv run python -m unittest discover -v tests
+        run: uv run pytest

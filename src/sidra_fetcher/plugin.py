@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -21,6 +22,8 @@ app = typer.Typer(help="Interface para as APIs SIDRA/Agregados do IBGE.")
 list_sub = typer.Typer(help="Listar pesquisas e agregados do IBGE.")
 app.add_typer(list_sub, name="list")
 console = get_console()
+
+_DEFAULT_OUTPUT = Path("/data/sidra")
 
 
 @list_sub.command("pesquisas")
@@ -140,8 +143,8 @@ def cmd_periods(
 def cmd_download(
     agregado_id: Annotated[int, typer.Argument(help="ID do agregado (ex: 1705)")],
     output: Annotated[
-        str, typer.Option("--output", "-o", help="Diretório de saída")
-    ] = "./sidra_data",
+        Path, typer.Option("--output", "-o", help="Diretório de saída")
+    ] = _DEFAULT_OUTPUT,
     niveis: Annotated[
         str | None,
         typer.Option(
