@@ -10,7 +10,6 @@ import logging
 import sys
 
 from quantilica.core.logging import configure_cli_logging
-from quantilica.core.progress import batch_progress
 
 from sidra_fetcher import __version__
 from sidra_fetcher.download import describe_download_plan
@@ -137,16 +136,32 @@ def handle_download(args: argparse.Namespace):
         if args.dry_run:
             return
 
-        with batch_progress("Baixando", total=resumo["n_requests"]) as pbar:
+        from tqdm import tqdm
+
+        level_pbars = {}
+
+        def on_chunk_done(chunk) -> None:
+            nivel = chunk.nivel_territorial
+            if nivel not in level_pbars:
+                total = resumo["por_nivel"][nivel]["n_requests"]
+                level_pbars[nivel] = tqdm(
+                    total=total, desc=f"Nível {nivel}", unit="req", leave=True
+                )
+            level_pbars[nivel].update(1)
+
+        try:
             paths = client.download_dados_agregado(
                 args.agregado_id,
                 args.output,
                 agregado=agregado,
-                max_workers=args.max_workers,
+                max_workers=args.workers,
                 politeness_delay=args.delay,
-                on_chunk_done=lambda _chunk: pbar.update(1),
+                on_chunk_done=on_chunk_done,
                 **filtros,
             )
+        finally:
+            for pbar in level_pbars.values():
+                pbar.close()
 
     for p in paths:
         print(f"Gravado: {p}")
@@ -218,7 +233,7 @@ def get_parser() -> argparse.ArgumentParser:
         default=[],
         help="ID=cat1,cat2 (repetível). Padrão: todas as categorias.",
     )
-    d_parser.add_argument("--max-workers", type=int, default=4)
+    d_parser.add_argument("--workers", type=int, default=4, help="Downloads paralelos")
     d_parser.add_argument(
         "--delay", type=float, default=0.2, help="Pausa entre requests (segundos)."
     )

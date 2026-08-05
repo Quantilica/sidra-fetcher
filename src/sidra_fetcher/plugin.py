@@ -9,9 +9,8 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from quantilica.core.cli import get_console, setup_rich_logging
+from quantilica.core.cli import get_console, make_download_progress, setup_rich_logging
 from rich.panel import Panel
-from rich.progress import Progress
 from rich.table import Table
 
 from sidra_fetcher.cli import _parse_classificacoes, _parse_lista
@@ -165,7 +164,7 @@ def cmd_download(
             "--classificacao", help="ID=cat1,cat2 (repetível). Padrão: todas."
         ),
     ] = [],  # noqa: B006 - typer exige um default mutável para opções repetíveis
-    max_workers: Annotated[int, typer.Option("--max-workers")] = 4,
+    workers: Annotated[int, typer.Option("--workers", help="Downloads paralelos")] = 4,
     delay: Annotated[
         float, typer.Option("--delay", help="Pausa entre requests (segundos)")
     ] = 0.2,
@@ -212,15 +211,25 @@ def cmd_download(
         if dry_run:
             return
 
-        with Progress(console=console) as progress:
-            task = progress.add_task("Baixando", total=resumo["n_requests"])
+        with make_download_progress(console=console) as progress:
+            level_tasks = {}
+
+            def on_chunk_done(chunk) -> None:
+                nivel = chunk.nivel_territorial
+                if nivel not in level_tasks:
+                    total = resumo["por_nivel"][nivel]["n_requests"]
+                    level_tasks[nivel] = progress.add_task(
+                        f"Nível {nivel}", total=total
+                    )
+                progress.advance(level_tasks[nivel])
+
             paths = client.download_dados_agregado(
                 agregado_id,
                 output,
                 agregado=agregado,
-                max_workers=max_workers,
+                max_workers=workers,
                 politeness_delay=delay,
-                on_chunk_done=lambda _chunk: progress.advance(task),
+                on_chunk_done=on_chunk_done,
                 **filtros,
             )
 
