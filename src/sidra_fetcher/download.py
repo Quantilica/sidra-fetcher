@@ -26,6 +26,7 @@ Typical usage:
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -33,11 +34,12 @@ import tempfile
 import threading
 import time
 from collections.abc import Callable, Generator
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from quantilica.core.cli import graceful_executor
 from quantilica.core.exceptions import FetchError
 from quantilica.core.manifests import DownloadManifest
 
@@ -477,6 +479,7 @@ def _download_nivel(
     max_workers: int,
     politeness_delay: float,
     on_chunk_done: Callable[[DownloadChunk], None] | None,
+    acquire_slot: Callable[[str], Any] | None = None,
 ) -> Path:
     """Baixa todos os chunks de um nível territorial e grava NDJSON + manifest."""
     fd, raw_temp_path = tempfile.mkstemp(
@@ -502,14 +505,18 @@ def _download_nivel(
         # thread principal — que assim consome/escreve continuamente em vez
         # de acumular respostas completas na memória durante a submissão.
         url = chunk.parametro.url()
-        limiter.wait()
-        return _validar_linhas(url, client.get(url))
+        if acquire_slot:
+            ctx = acquire_slot(f"Nível {nivel}")
+        else:
+            ctx = contextlib.nullcontext()
+        with ctx:
+            limiter.wait()
+            return _validar_linhas(url, client.get(url))
 
     try:
         with os.fdopen(fd, "wb") as stream:
-            executor = ThreadPoolExecutor(max_workers=max_workers)
             futures: dict[Any, DownloadChunk] = {}
-            try:
+            with graceful_executor(max_workers=max_workers) as executor:
                 futures = {executor.submit(_fetch, chunk): chunk for chunk in grupo}
                 for future in as_completed(futures):
                     chunk = futures[future]
@@ -522,12 +529,6 @@ def _download_nivel(
                             _escrever_linha(stream, linha)
                     if on_chunk_done is not None:
                         on_chunk_done(chunk)
-                executor.shutdown(wait=True)
-            except KeyboardInterrupt:
-                for future in futures:
-                    future.cancel()
-                executor.shutdown(wait=False, cancel_futures=True)
-                raise
             stream.flush()
             os.fsync(stream.fileno())
         temp_path.replace(target)
@@ -564,6 +565,7 @@ def download_agregado_dados(
     max_workers: int = 4,
     politeness_delay: float = 0.0,
     on_chunk_done: Callable[[DownloadChunk], None] | None = None,
+    acquire_slot: Callable[[str], Any] | None = None,
 ) -> list[Path]:
     """Baixa todos os dados de um agregado e grava um NDJSON + manifest por
     nível territorial.
@@ -623,6 +625,7 @@ def download_agregado_dados(
                 max_workers=max_workers,
                 politeness_delay=politeness_delay,
                 on_chunk_done=on_chunk_done,
+                acquire_slot=acquire_slot,
             )
         )
     return paths

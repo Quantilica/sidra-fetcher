@@ -9,7 +9,15 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from quantilica.core.cli import get_console, make_download_progress, setup_rich_logging
+from quantilica.core.cli import (
+    ProgressPool,
+    get_console,
+    make_batch_progress,
+    make_download_progress,
+    setup_rich_logging,
+)
+from rich.console import Group
+from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 
@@ -211,17 +219,28 @@ def cmd_download(
         if dry_run:
             return
 
-        with make_download_progress(console=console) as progress:
+        batch_progress = make_batch_progress(console)
+        file_progress = make_download_progress(console)
+        pool = ProgressPool(workers=workers, file_prog=file_progress)
+
+        with Live(
+            Group(batch_progress, file_progress),
+            console=console,
+            refresh_per_second=10,
+        ):
             level_tasks = {}
 
             def on_chunk_done(chunk) -> None:
                 nivel = chunk.nivel_territorial
                 if nivel not in level_tasks:
                     total = resumo["por_nivel"][nivel]["n_requests"]
-                    level_tasks[nivel] = progress.add_task(
-                        f"Nível {nivel}", total=total
+                    level_tasks[nivel] = batch_progress.add_task(
+                        f"[cyan]Nível {nivel}[/cyan]", total=total
                     )
-                progress.advance(level_tasks[nivel])
+                batch_progress.update(level_tasks[nivel], advance=1)
+
+            def acquire_slot(desc: str):
+                return pool.acquire(description=f"[cyan]{desc}[/cyan]")
 
             try:
                 paths = client.download_dados_agregado(
@@ -231,6 +250,7 @@ def cmd_download(
                     max_workers=workers,
                     politeness_delay=delay,
                     on_chunk_done=on_chunk_done,
+                    acquire_slot=acquire_slot,
                     **filtros,
                 )
             except KeyboardInterrupt:
