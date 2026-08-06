@@ -223,15 +223,19 @@ def cmd_download(
                     )
                 progress.advance(level_tasks[nivel])
 
-            paths = client.download_dados_agregado(
-                agregado_id,
-                output,
-                agregado=agregado,
-                max_workers=workers,
-                politeness_delay=delay,
-                on_chunk_done=on_chunk_done,
-                **filtros,
-            )
+            try:
+                paths = client.download_dados_agregado(
+                    agregado_id,
+                    output,
+                    agregado=agregado,
+                    max_workers=workers,
+                    politeness_delay=delay,
+                    on_chunk_done=on_chunk_done,
+                    **filtros,
+                )
+            except KeyboardInterrupt:
+                console.print("\n[yellow]Interrompido.[/yellow]")
+                raise typer.Exit(130) from None
 
     for p in paths:
         console.print(f"[green]Gravado:[/green] {p}")

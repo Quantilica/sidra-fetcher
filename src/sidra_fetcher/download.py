@@ -508,10 +508,9 @@ def _download_nivel(
     try:
         with os.fdopen(fd, "wb") as stream:
             executor = ThreadPoolExecutor(max_workers=max_workers)
+            futures: dict[Any, DownloadChunk] = {}
             try:
-                futures: dict[Any, DownloadChunk] = {
-                    executor.submit(_fetch, chunk): chunk for chunk in grupo
-                }
+                futures = {executor.submit(_fetch, chunk): chunk for chunk in grupo}
                 for future in as_completed(futures):
                     chunk = futures[future]
                     linhas = future.result()
@@ -523,8 +522,12 @@ def _download_nivel(
                             _escrever_linha(stream, linha)
                     if on_chunk_done is not None:
                         on_chunk_done(chunk)
-            finally:
                 executor.shutdown(wait=True)
+            except KeyboardInterrupt:
+                for future in futures:
+                    future.cancel()
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise
             stream.flush()
             os.fsync(stream.fileno())
         temp_path.replace(target)
