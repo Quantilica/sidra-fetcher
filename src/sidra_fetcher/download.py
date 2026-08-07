@@ -39,7 +39,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from quantilica.core.cli import graceful_executor
+from quantilica.cli.ui import graceful_executor
 from quantilica.core.exceptions import FetchError
 from quantilica.core.manifests import DownloadManifest
 

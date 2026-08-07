@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from quantilica.core.cli import (
+from quantilica.cli.ui import (
     ProgressPool,
     get_console,
     make_batch_progress,
