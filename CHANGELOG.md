@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.10.0] - 2026-08-10
+### Alterado
+- Migração arquitetural: O app Typer agora compõe e herda as assinaturas canônicas da `FetcherApp` (`SidraFetcherApp`), alinhando o plugin à SDK padrão da CLI.
+
 ## [0.9.0] - 2026-08-07
 ### Alterado
 - Refatoração arquitetural: Remoção de dependências (`quantilica-cli` e `quantilica-catalog`) e limpeza de imports. Os fetchers agora são pacotes de extração puros, dependendo estritamente do `quantilica-core`.
