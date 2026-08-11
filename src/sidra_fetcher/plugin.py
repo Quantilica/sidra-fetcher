@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from quantilica.cli.sdk import FetcherApp
 from quantilica.cli.ui import (
     ProgressPool,
     get_console,
@@ -25,7 +26,35 @@ from sidra_fetcher.cli import _parse_classificacoes, _parse_lista
 from sidra_fetcher.download import describe_download_plan
 from sidra_fetcher.fetcher import SidraClient
 
-app = typer.Typer(help="Interface para as APIs SIDRA/Agregados do IBGE.")
+
+class SidraFetcherApp(FetcherApp):
+    def _build_commands(self) -> None:
+        # Override to avoid creating default sync/list commands,
+        # as SIDRA uses custom list (SubTyper) and download (Custom Planner).
+        pass
+
+
+_DEFAULT_OUTPUT = Path("/data/sidra")
+
+
+def sidra_list_datasets(group: str) -> list[dict]:
+    return []
+
+
+def sidra_path_builder(output_dir: Path, entry: dict, last_modified) -> Path:
+    return output_dir / entry.get("id", "unknown")
+
+
+fetcher_app = SidraFetcherApp(
+    name="sidra-fetcher",
+    help="Interface para as APIs SIDRA/Agregados do IBGE.",
+    groups_dict={},
+    list_datasets=sidra_list_datasets,
+    path_builder=sidra_path_builder,
+    default_output=_DEFAULT_OUTPUT,
+)
+
+app = fetcher_app.app
 list_sub = typer.Typer(help="Listar pesquisas e agregados do IBGE.")
 app.add_typer(list_sub, name="list")
 console = get_console()
