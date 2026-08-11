@@ -49,6 +49,7 @@ fetcher_app = SidraFetcherApp(
     name="sidra-fetcher",
     help="Interface para as APIs SIDRA/Agregados do IBGE.",
     groups_dict={},
+    aliases_dict={},
     list_datasets=sidra_list_datasets,
     path_builder=sidra_path_builder,
     default_output=_DEFAULT_OUTPUT,
