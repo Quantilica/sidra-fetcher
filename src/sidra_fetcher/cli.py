@@ -17,7 +17,11 @@ from sidra_fetcher.fetcher import SidraClient
 
 
 def handle_list_pesquisas(args: argparse.Namespace):
-    """Handle `list pesquisas`."""
+    """Handle `list pesquisas`.
+    
+    Args:
+        args (argparse.Namespace): Parsed command-line arguments.
+    """
     with SidraClient() as client:
         pesquisas = client.get_indice_pesquisas_agregados()
 
@@ -28,7 +32,11 @@ def handle_list_pesquisas(args: argparse.Namespace):
 
 
 def handle_list_agregados(args: argparse.Namespace):
-    """Handle `list agregados`."""
+    """Handle `list agregados`.
+    
+    Args:
+        args (argparse.Namespace): Parsed command-line arguments.
+    """
     with SidraClient() as client:
         pesquisas = client.get_indice_pesquisas_agregados()
         pesquisa = next((p for p in pesquisas if p.id == args.pesquisa_id), None)
@@ -45,7 +53,11 @@ def handle_list_agregados(args: argparse.Namespace):
 
 
 def handle_info(args: argparse.Namespace):
-    """Handle info command."""
+    """Handle info command.
+    
+    Args:
+        args (argparse.Namespace): Parsed command-line arguments.
+    """
     with SidraClient() as client:
         try:
             metadados = client.get_agregado_metadados(args.agregado_id)
@@ -69,7 +81,11 @@ def handle_info(args: argparse.Namespace):
 
 
 def handle_periods(args: argparse.Namespace):
-    """Handle periods command."""
+    """Handle periods command.
+    
+    Args:
+        args (argparse.Namespace): Parsed command-line arguments.
+    """
     with SidraClient() as client:
         try:
             periodos = client.get_agregado_periodos(args.agregado_id)
@@ -105,7 +121,11 @@ def _parse_classificacoes(items: list[str]) -> dict[str, list[str]] | None:
 
 
 def handle_download(args: argparse.Namespace):
-    """Handle `download`."""
+    """Handle `download`.
+    
+    Args:
+        args (argparse.Namespace): Parsed command-line arguments.
+    """
     filtros = {
         "niveis_territoriais": _parse_lista(args.niveis),
         "variaveis": _parse_lista(args.variaveis),
@@ -168,6 +188,11 @@ def handle_download(args: argparse.Namespace):
 
 
 def get_parser() -> argparse.ArgumentParser:
+    """Create and return the argument parser for the CLI.
+    
+    Returns:
+        argparse.ArgumentParser: The configured argument parser.
+    """
     parser = argparse.ArgumentParser(
         prog="sidra-fetcher",
         description="Interface para as APIs SIDRA/Agregados do IBGE.",
@@ -248,7 +273,11 @@ def get_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> None:
-    """Main entry point."""
+    """Main entry point.
+    
+    Args:
+        argv (list[str] | None): Optional list of command-line arguments.
+    """
     parser = get_parser()
     args = parser.parse_args(argv)
     configure_cli_logging(verbose=args.verbose)

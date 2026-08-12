@@ -77,6 +77,12 @@ def expected_periodo_frequencias(api_periodicidade: str | None) -> set[str]:
     Returns the set of `periodo.frequencia` values that periods of an agregado
     with the given API periodicidade are expected to have. Returns an empty set
     for unknown or falsy inputs, which callers should interpret as "no filter".
+    
+    Args:
+        api_periodicidade (str | None): The periodicidade string from the API.
+        
+    Returns:
+        set[str]: A set of canonical frequency types.
     """
     if not api_periodicidade:
         return set()
@@ -138,7 +144,15 @@ YEARS_PATTERN = r"^(\d{4})(?:/(\d{4}))?$"
 YEARS_RE = re.compile(YEARS_PATTERN)
 
 
-def parse_period(periodo: dict[str, str]):
+def parse_period(periodo: dict[str, str]) -> dict[str, Any]:
+    """Parse a period dictionary from the API into a structured format.
+    
+    Args:
+        periodo (dict[str, str]): The raw period dictionary from the API.
+        
+    Returns:
+        dict[str, Any]: A structured dictionary containing parsed temporal data.
+    """
     period_id = periodo["id"]
     literals = periodo["literals"]
 
@@ -271,7 +285,14 @@ def parse_period(periodo: dict[str, str]):
 
 
 def parse_date(date_str: str) -> dt.date:
-    """Parse 'DD/MM/YYYY' or 'YYYY-MM-DD' date strings to date."""
+    """Parse 'DD/MM/YYYY' or 'YYYY-MM-DD' date strings to date.
+    
+    Args:
+        date_str (str): The date string to parse.
+        
+    Returns:
+        dt.date: The parsed date object.
+    """
     if "/" in date_str:
         return dt.datetime.strptime(date_str, "%d/%m/%Y").date()
     return dt.date.fromisoformat(date_str)

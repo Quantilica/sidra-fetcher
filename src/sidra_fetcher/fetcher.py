@@ -62,16 +62,34 @@ class SidraClient:
     def __init__(
         self, timeout: int = 60, attempts: int = 3, retry_base_delay: float = 1.0
     ) -> None:
+        """Initialize the SidraClient.
+        
+        Args:
+            timeout (int): The request timeout in seconds.
+            attempts (int): The number of attempts for a request.
+            retry_base_delay (float): The base delay for retries in seconds.
+        """
         self.client = HttpClient(
             timeout=timeout, attempts=attempts, retry_base_delay=retry_base_delay
         )
 
     def get(self, url: str) -> Any:
-        """Fetch data from the given URL."""
+        """Fetch data from the given URL.
+        
+        Args:
+            url (str): The URL to fetch data from.
+            
+        Returns:
+            Any: The JSON response parsed as a Python object.
+        """
         return self.client.get_json(url)
 
     def get_indice_pesquisas_agregados(self) -> list[IndicePesquisaAgregados]:
-        """Fetch the index of agregados grouped by pesquisa."""
+        """Fetch the index of agregados grouped by pesquisa.
+        
+        Returns:
+            list[IndicePesquisaAgregados]: A list of surveys with their associated aggregates.
+        """
         url_agregados = build_url_agregados()
         with log_step(logger, "fetch-indice-pesquisas"):
             data = self.get(url_agregados)
@@ -92,7 +110,14 @@ class SidraClient:
             return data
 
     def get_agregado_metadados(self, agregado_id: int) -> Agregado:
-        """Fetch metadata for a specific agregado."""
+        """Fetch metadata for a specific agregado.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            
+        Returns:
+            Agregado: The aggregate metadata object.
+        """
         url_metadados = build_url_metadados(agregado_id)
         with log_step(logger, "fetch-agregado-metadados", agregado_id=agregado_id):
             data = self.get(url_metadados)
@@ -146,7 +171,14 @@ class SidraClient:
             return agregado
 
     def get_agregado_periodos(self, agregado_id: int) -> list[Periodo]:
-        """Fetch available periods for an aggregate."""
+        """Fetch available periods for an aggregate.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            
+        Returns:
+            list[Periodo]: A list of periods available for the aggregate.
+        """
         url_periodos = build_url_periodos(agregado_id)
         raw_data = self.get(url_periodos)
         parsed_data = read_periodos(raw_data)
@@ -155,7 +187,15 @@ class SidraClient:
     def get_agregado_localidades(
         self, agregado_id: int, localidades_nivel: str
     ) -> list[Localidade]:
-        """Fetch aggregate localidades filtered by territorial levels."""
+        """Fetch aggregate localidades filtered by territorial levels.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            localidades_nivel (str): Comma-separated territorial level ids.
+            
+        Returns:
+            list[Localidade]: A list of localities for the specified levels.
+        """
         url_localidades = build_url_localidades(agregado_id, localidades_nivel)
         data = self.get(url_localidades)
         return [
@@ -173,6 +213,12 @@ class SidraClient:
     def get_agregado(self, agregado_id: int) -> Agregado:
         """Fetch a complete :class:`Agregado` including periods and
         localidades.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            
+        Returns:
+            Agregado: The complete aggregate object.
         """
         with log_step(logger, "fetch-agregado-complete", agregado_id=agregado_id):
             agregado_metadados = self.get_agregado_metadados(agregado_id)
@@ -192,7 +238,14 @@ class SidraClient:
             return agregado_metadados
 
     def get_acervo(self, acervo: AcervoEnum) -> Any:
-        """Fetch an `acervo` (collection) listing from the agregados API."""
+        """Fetch an `acervo` (collection) listing from the agregados API.
+        
+        Args:
+            acervo (AcervoEnum): The collection type to fetch.
+            
+        Returns:
+            Any: The JSON response containing the collection data.
+        """
         url_acervo = build_url_acervos(acervo)
         data = self.get(url_acervo)
         return data
@@ -211,6 +264,14 @@ class SidraClient:
         :func:`sidra_fetcher.download.plan_agregado_download` for the
         accepted ``filtros`` (``niveis_territoriais``, ``variaveis``,
         ``periodos``, ``classificacoes``, ``formato``, ``decimais``, ``limit``).
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            agregado (Agregado | None): Optional pre-fetched aggregate metadata.
+            **filtros (Any): Additional filters to apply.
+            
+        Returns:
+            list[DownloadChunk]: A list of chunks to download.
         """
         if agregado is None:
             agregado = self.get_agregado(agregado_id)
@@ -228,6 +289,15 @@ class SidraClient:
 
         Memory-safe for large tables — prefer this over
         :meth:`get_dados_agregado` when the aggregate may have many rows.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            agregado (Agregado | None): Optional pre-fetched aggregate metadata.
+            politeness_delay (float): Delay between requests in seconds.
+            **filtros (Any): Additional filters to apply.
+            
+        Yields:
+            tuple[DownloadChunk, list[dict]]: A tuple containing the download chunk and its rows.
         """
         chunks = self.plan_dados_agregado(agregado_id, agregado=agregado, **filtros)
         yield from iter_download_chunks(self, chunks, politeness_delay=politeness_delay)
@@ -237,6 +307,13 @@ class SidraClient:
 
         Not recommended for very large tables — use :meth:`iter_dados_agregado`
         or :meth:`download_dados_agregado` instead.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            **filtros (Any): Additional filters to apply.
+            
+        Returns:
+            list[dict]: A list of all rows downloaded.
         """
         linhas: list[dict] = []
         cabecalho_escrito = False
@@ -256,6 +333,14 @@ class SidraClient:
 
         See :func:`sidra_fetcher.download.download_agregado_dados` for the
         accepted keyword arguments.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            output_dir (str | Path): The directory to save the downloaded files.
+            **kwargs (Any): Additional keyword arguments.
+            
+        Returns:
+            list[Path]: A list of paths to the downloaded data files.
         """
         return download_agregado_dados(self, agregado_id, output_dir, **kwargs)
 
@@ -274,16 +359,32 @@ class AsyncSidraClient:
     """
 
     def __init__(self, timeout: int = 60) -> None:
+        """Initialize the AsyncSidraClient.
+        
+        Args:
+            timeout (int): The request timeout in seconds.
+        """
         self.client = AsyncHttpClient(timeout=timeout)
 
     async def get(self, url: str) -> Any:
-        """Fetch data from the given URL asynchronously."""
+        """Fetch data from the given URL asynchronously.
+        
+        Args:
+            url (str): The URL to fetch data from.
+            
+        Returns:
+            Any: The JSON response parsed as a Python object.
+        """
         return await self.client.get_json(url)
 
     async def get_indice_pesquisas_agregados(
         self,
     ) -> list[IndicePesquisaAgregados]:
-        """Fetch the index of agregados grouped by pesquisa."""
+        """Fetch the index of agregados grouped by pesquisa.
+        
+        Returns:
+            list[IndicePesquisaAgregados]: A list of surveys with their associated aggregates.
+        """
         url_agregados = build_url_agregados()
         with log_step(logger, "fetch-indice-pesquisas-async"):
             data = await self.get(url_agregados)
@@ -303,7 +404,14 @@ class AsyncSidraClient:
             ]
 
     async def get_agregado_metadados(self, agregado_id: int) -> Agregado:
-        """Fetch metadata for a specific agregado."""
+        """Fetch metadata for a specific agregado.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            
+        Returns:
+            Agregado: The aggregate metadata object.
+        """
         url_metadados = build_url_metadados(agregado_id)
         with log_step(
             logger, "fetch-agregado-metadados-async", agregado_id=agregado_id
@@ -358,7 +466,14 @@ class AsyncSidraClient:
             )
 
     async def get_agregado_periodos(self, agregado_id: int) -> list[Periodo]:
-        """Fetch available periods for an aggregate."""
+        """Fetch available periods for an aggregate.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            
+        Returns:
+            list[Periodo]: A list of periods available for the aggregate.
+        """
         url_periodos = build_url_periodos(agregado_id)
         raw_data = await self.get(url_periodos)
         parsed_data = read_periodos(raw_data)
@@ -367,7 +482,15 @@ class AsyncSidraClient:
     async def get_agregado_localidades(
         self, agregado_id: int, localidades_nivel: str
     ) -> list[Localidade]:
-        """Fetch localidades for an aggregate filtered by territorial level."""
+        """Fetch localidades for an aggregate filtered by territorial level.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            localidades_nivel (str): Comma-separated territorial level ids.
+            
+        Returns:
+            list[Localidade]: A list of localities for the specified levels.
+        """
         url_localidades = build_url_localidades(agregado_id, localidades_nivel)
         data = await self.get(url_localidades)
         return [
@@ -385,6 +508,12 @@ class AsyncSidraClient:
     async def get_agregado(self, agregado_id: int) -> Agregado:
         """Fetch a complete :class:`Agregado` including periods and
         localidades.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            
+        Returns:
+            Agregado: The complete aggregate object.
         """
         with log_step(logger, "fetch-agregado-complete-async", agregado_id=agregado_id):
             agregado_metadados, agregado_periodos = await asyncio.gather(
@@ -407,7 +536,14 @@ class AsyncSidraClient:
             return agregado_metadados
 
     async def get_acervo(self, acervo: AcervoEnum) -> Any:
-        """Fetch an `acervo` (collection) listing from the agregados API."""
+        """Fetch an `acervo` (collection) listing from the agregados API.
+        
+        Args:
+            acervo (AcervoEnum): The collection type to fetch.
+            
+        Returns:
+            Any: The JSON response containing the collection data.
+        """
         url_acervo = build_url_acervos(acervo)
         return await self.get(url_acervo)
 
@@ -425,6 +561,14 @@ class AsyncSidraClient:
         :func:`sidra_fetcher.download.plan_agregado_download` for the
         accepted ``filtros``. Concurrent async execution of the plan is not
         implemented; use :class:`SidraClient` for downloads.
+        
+        Args:
+            agregado_id (int): The ID of the aggregate.
+            agregado (Agregado | None): Optional pre-fetched aggregate metadata.
+            **filtros (Any): Additional filters to apply.
+            
+        Returns:
+            list[DownloadChunk]: A list of chunks to download.
         """
         if agregado is None:
             agregado = await self.get_agregado(agregado_id)

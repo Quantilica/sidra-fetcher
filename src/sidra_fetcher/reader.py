@@ -57,7 +57,15 @@ from .periodos import parse_date, parse_period
 class DateEncoder(json.JSONEncoder):
     """JSON encoder that converts dt.date to ISO 8601 string."""
 
-    def default(self, obj):
+    def default(self, obj: Any) -> Any:
+        """Encode object to JSON.
+        
+        Args:
+            obj (Any): The object to encode.
+            
+        Returns:
+            Any: The JSON-encoded representation of the object.
+        """
         if isinstance(obj, dt.date):
             return obj.isoformat()
         return super().default(obj)
@@ -554,7 +562,12 @@ def read_localidades(data: list[dict[str, Any]]) -> list[Localidade]:
 
 
 def save_agregado(agregado: Agregado, path: str | Path) -> None:
-    """Save an Agregado instance to a JSON file and generate a manifest."""
+    """Save an Agregado instance to a JSON file and generate a manifest.
+    
+    Args:
+        agregado (Agregado): The aggregate object to save.
+        path (str | Path): The destination file path.
+    """
     path = Path(path)
     content = json.dumps(
         agregado.asdict(),
