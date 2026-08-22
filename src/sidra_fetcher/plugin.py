@@ -39,10 +39,10 @@ _DEFAULT_OUTPUT = Path("/data/sidra")
 
 def sidra_list_datasets(group: str) -> list[dict]:
     """List datasets for the SIDRA plugin.
-    
+
     Args:
         group (str): The group identifier.
-        
+
     Returns:
         list[dict]: A list of dataset dictionaries.
     """
@@ -51,12 +51,12 @@ def sidra_list_datasets(group: str) -> list[dict]:
 
 def sidra_path_builder(output_dir: Path, entry: dict, last_modified) -> Path:
     """Build the output path for a SIDRA dataset entry.
-    
+
     Args:
         output_dir (Path): The base output directory.
         entry (dict): The dataset entry dictionary.
         last_modified: The last modified date/time.
-        
+
     Returns:
         Path: The constructed path for the dataset.
     """
