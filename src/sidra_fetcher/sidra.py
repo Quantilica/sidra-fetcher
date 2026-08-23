@@ -133,13 +133,15 @@ class Parametro:
         decimais: dict[str, Precisao] = None,
     ) -> None:
         """Initialize a Parametro object.
-        
+
         Args:
             agregado (str): Aggregate/table identifier.
-            territorios (dict[str, list[str]]): Mapping of territorial levels to lists of ids.
+            territorios (dict[str, list[str]]): Mapping of territorial levels
+            to lists of ids.
             variaveis (list[str]): List of variable identifiers.
             periodos (list[str]): List of period identifiers.
-            classificacoes (dict[str, list[str]]): Mapping of classification ids to selected values.
+            classificacoes (dict[str, list[str]]): Mapping of classification
+            ids to selected values.
             cabecalho (bool): Whether to include the header in the request.
             formato (Formato): Output format.
             decimais (dict[str, Precisao]): Precision map for variables.
@@ -270,11 +272,11 @@ def get_sidra_url_request_period(
 
     Given a :class:`Parametro` instance, return a URL where the
     ``periods`` segment is replaced with the provided ``period_id``.
-    
+
     Args:
         parameter (Parametro): The base parameters.
         period_id (int): The period ID to inject.
-        
+
     Returns:
         str: The constructed request URL.
     """
@@ -314,10 +316,10 @@ def parse_periods(url: str) -> tuple[str, list[str]]:
     Returns a tuple ``(raw_match, periods)`` where ``raw_match`` is the
     matched segment string (or empty string if not present) and
     ``periods`` is a list of individual period identifiers.
-    
+
     Args:
         url (str): A SIDRA request URL to parse.
-        
+
     Returns:
         tuple[str, list[str]]: The raw matched string and a list of period identifiers.
     """
@@ -337,10 +339,10 @@ def parse_header(url: str) -> tuple[str, bool]:
     is ``True`` when the URL contains ``/h/y`` and ``False`` for
     ``/h/n``. If the segment is missing the returned ``raw_match`` is
     an empty string and ``show_header`` defaults to ``True``.
-    
+
     Args:
         url (str): A SIDRA request URL to parse.
-        
+
     Returns:
         tuple[str, bool]: The raw matched string and the header flag boolean.
     """
@@ -357,10 +359,10 @@ def parse_format(url: str) -> tuple[str, Formato]:
 
     Returns a tuple ``(raw_match, formato_enum)``. If the segment is
     missing this returns an empty string and ``Formato.A`` as default.
-    
+
     Args:
         url (str): A SIDRA request URL to parse.
-        
+
     Returns:
         tuple[str, Formato]: The raw matched string and the parsed output format.
     """
@@ -377,12 +379,13 @@ def parse_decimal(url: str) -> tuple[str, dict[str, Precisao]]:
     Returns a tuple ``(raw_match, decimal_map)`` where ``decimal_map``
     maps variable keys (or empty string for the global precision) to
     :class:`Precisao` values.
-    
+
     Args:
         url (str): A SIDRA request URL to parse.
-        
+
     Returns:
-        tuple[str, dict[str, Precisao]]: The raw matched string and the decimal precision mapping.
+        tuple[str, dict[str, Precisao]]: The raw matched string and the
+        decimal precision mapping.
     """
     d = re.search(r"\/d\/(?:v\d+%20\d+(?:,v\d+%20\d+)*|[ms])", url)
     if not d:
@@ -407,10 +410,10 @@ def parse_variables(url: str) -> tuple[str, list[str]]:
 
     Returns a tuple ``(raw_match, variables)`` where ``variables`` is a
     list of ids or the special values like ``['all']``.
-    
+
     Args:
         url (str): A SIDRA request URL to parse.
-        
+
     Returns:
         tuple[str, list[str]]: The raw matched string and the parsed variable IDs.
     """
@@ -429,12 +432,13 @@ def parse_classifications(url: str) -> tuple[list[str], dict[str, list[str]]]:
     Returns a tuple ``(matches, classifications)`` where
     ``classifications`` maps classification ids to lists of selected
     category ids (or ``['all']``).
-    
+
     Args:
         url (str): A SIDRA request URL to parse.
-        
+
     Returns:
-        tuple[list[str], dict[str, list[str]]]: The raw matches and the classification mapping.
+        tuple[list[str], dict[str, list[str]]]: The raw matches and the
+        classification mapping.
     """
     c = re.findall(r"(\/c\d+\/)(all|allxt|\d+(,\d+)*)", url)
     c = ["".join(g) for g in c]
@@ -450,10 +454,10 @@ def parse_aggregate(url: str) -> tuple[str, str]:
 
     Returns ``(raw_match, aggregate_id)``. If absent both return values
     are empty strings.
-    
+
     Args:
         url (str): A SIDRA request URL to parse.
-        
+
     Returns:
         tuple[str, str]: The raw matched string and the aggregate ID.
     """
@@ -471,10 +475,10 @@ def parse_url(url: str) -> dict[str, Any]:
     The returned dict contains the raw matched segments and parsed
     structures for aggregate, territories, classifications, variables,
     header, format, decimals and periods.
-    
+
     Args:
         url (str): A complete SIDRA request URL to parse.
-        
+
     Returns:
         dict[str, Any]: A dictionary containing all parsed components of the URL.
     """
@@ -512,10 +516,10 @@ def parse_url(url: str) -> dict[str, Any]:
 
 def parameter_from_url(url: str) -> Parametro:
     """Given a URL, returns a Parametro object.
-    
+
     Args:
         url (str): A complete SIDRA request URL.
-        
+
     Returns:
         Parametro: A Parametro instance populated from the URL parameters.
     """
