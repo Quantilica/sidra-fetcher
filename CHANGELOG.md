@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.10.2] - 2026-08-30
+### Corrigido
+- Testes adaptados à migração `httpx` → `httpx2` no `quantilica-core` (alvos de patch `quantilica.core.http.httpx2.Client`).
+- Dependência `quantilica-core` elevada para `>=0.6.0`.
+
 ## [0.10.1] - 2026-08-10
 ### Corrigido
 - Atualizada dependência `quantilica-core` para `>=0.5.0` devido às novas assinaturas requeridas pelo CLI.
