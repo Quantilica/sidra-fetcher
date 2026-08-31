@@ -5,7 +5,7 @@ from quantilica.core.storage import LocalStorage
 
 class DataRepository:
     """Manages storage for IBGE/SIDRA metadata files using LocalStorage.
-    
+
     Args:
         root (Path | str): The root directory for the storage repository.
     """
@@ -15,10 +15,10 @@ class DataRepository:
 
     def path_agregado(self, agregado_id: int | str) -> Path:
         """Return the path for a specific aggregate's JSON metadata.
-        
+
         Args:
             agregado_id (int | str): The ID of the aggregate.
-            
+
         Returns:
             Path: The path to the aggregate's JSON metadata file.
         """
@@ -26,7 +26,7 @@ class DataRepository:
 
     def path_indice(self) -> Path:
         """Return the path for the surveys index JSON.
-        
+
         Returns:
             Path: The path to the surveys index JSON file.
         """
@@ -34,11 +34,11 @@ class DataRepository:
 
     def path_dados(self, agregado_id: int | str, nivel_territorial: str) -> Path:
         """Return the path for one territorial level's downloaded data (NDJSON).
-        
+
         Args:
             agregado_id (int | str): The ID of the aggregate.
             nivel_territorial (str): The territorial level code (e.g., 'N1', 'N3').
-            
+
         Returns:
             Path: The path to the downloaded NDJSON data file.
         """

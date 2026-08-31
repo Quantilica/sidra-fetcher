@@ -59,10 +59,10 @@ class DateEncoder(json.JSONEncoder):
 
     def default(self, obj: Any) -> Any:
         """Encode object to JSON.
-        
+
         Args:
             obj (Any): The object to encode.
-            
+
         Returns:
             Any: The JSON-encoded representation of the object.
         """
@@ -563,7 +563,7 @@ def read_localidades(data: list[dict[str, Any]]) -> list[Localidade]:
 
 def save_agregado(agregado: Agregado, path: str | Path) -> None:
     """Save an Agregado instance to a JSON file and generate a manifest.
-    
+
     Args:
         agregado (Agregado): The aggregate object to save.
         path (str | Path): The destination file path.

@@ -435,7 +435,7 @@ def plan_agregado_download(
 
 def describe_download_plan(chunks: list[DownloadChunk]) -> dict[str, Any]:
     """Resumo de um plano de download: total de requests e valores estimados.
-    
+
     Args:
         chunks (list[DownloadChunk]): Lista de chunks gerados pelo planejador.
 
@@ -467,12 +467,12 @@ def iter_download_chunks(
 
     Seguro em memória (um chunk por vez) — apropriado para tabelas grandes
     ou quando concorrência não é necessária/desejada.
-    
+
     Args:
         client (SidraClient): Cliente configurado para realizar requisições.
         chunks (list[DownloadChunk]): Lista de chunks a baixar.
         politeness_delay (float): Pausa (segundos) entre o disparo de cada request.
-        
+
     Yields:
         tuple[DownloadChunk, list[dict]]: A tuple of the chunk and its retrieved rows.
     """

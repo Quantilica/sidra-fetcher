@@ -18,7 +18,7 @@ from sidra_fetcher.fetcher import SidraClient
 
 def handle_list_pesquisas(args: argparse.Namespace):
     """Handle `list pesquisas`.
-    
+
     Args:
         args (argparse.Namespace): Parsed command-line arguments.
     """
@@ -33,7 +33,7 @@ def handle_list_pesquisas(args: argparse.Namespace):
 
 def handle_list_agregados(args: argparse.Namespace):
     """Handle `list agregados`.
-    
+
     Args:
         args (argparse.Namespace): Parsed command-line arguments.
     """
@@ -54,7 +54,7 @@ def handle_list_agregados(args: argparse.Namespace):
 
 def handle_info(args: argparse.Namespace):
     """Handle info command.
-    
+
     Args:
         args (argparse.Namespace): Parsed command-line arguments.
     """
@@ -82,7 +82,7 @@ def handle_info(args: argparse.Namespace):
 
 def handle_periods(args: argparse.Namespace):
     """Handle periods command.
-    
+
     Args:
         args (argparse.Namespace): Parsed command-line arguments.
     """
@@ -122,7 +122,7 @@ def _parse_classificacoes(items: list[str]) -> dict[str, list[str]] | None:
 
 def handle_download(args: argparse.Namespace):
     """Handle `download`.
-    
+
     Args:
         args (argparse.Namespace): Parsed command-line arguments.
     """
@@ -189,7 +189,7 @@ def handle_download(args: argparse.Namespace):
 
 def get_parser() -> argparse.ArgumentParser:
     """Create and return the argument parser for the CLI.
-    
+
     Returns:
         argparse.ArgumentParser: The configured argument parser.
     """
@@ -274,7 +274,7 @@ def get_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     """Main entry point.
-    
+
     Args:
         argv (list[str] | None): Optional list of command-line arguments.
     """

@@ -213,7 +213,7 @@ class Agregado:
 
     def asdict(self) -> dict:
         """Convert the Agregado object to a dictionary.
-        
+
         Returns:
             dict: The dictionary representation of the Agregado.
         """
