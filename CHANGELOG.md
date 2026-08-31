@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.10.3] - 2026-08-31
+### Corrigido
+- `load_agregado()` restaurado em `sidra_fetcher.reader` — o refactor v0.9.0 removeu o par de leitura de `save_agregado()`, quebrando o round-trip de metadata consumido por `sidra-sql` (`Storage.read_metadata`). Novo teste de round-trio cobre o par save/load.
+
 ## [0.10.2] - 2026-08-30
 ### Corrigido
 - Testes adaptados à migração `httpx` → `httpx2` no `quantilica-core` (alvos de patch `quantilica.core.http.httpx2.Client`).
