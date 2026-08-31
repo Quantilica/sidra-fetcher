@@ -19,7 +19,7 @@ from sidra_fetcher.periodos import (
 
 
 def _make_mock_response(data: object) -> MagicMock:
-    """Return a mock httpx.Response that yields *data* as JSON."""
+    """Return a mock httpx2.Response that yields *data* as JSON."""
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.raise_for_status.return_value = None
@@ -29,18 +29,18 @@ def _make_mock_response(data: object) -> MagicMock:
 
 
 def _make_client(mock_response: object) -> SidraClient:
-    """Patch httpx.Client so that any request returns *mock_response*."""
+    """Patch httpx2.Client so that any request returns *mock_response*."""
     mock_resp = _make_mock_response(mock_response)
-    with patch("quantilica.core.http.httpx.Client") as mock_client_cls:
+    with patch("quantilica.core.http.httpx2.Client") as mock_client_cls:
         ctx = mock_client_cls.return_value.__enter__.return_value
         ctx.request.return_value = mock_resp
         # The SidraClient is created inside the patch so the
-        # HttpClient captures the patched httpx.Client class.
+        # HttpClient captures the patched httpx2.Client class.
         client = SidraClient()
     # Re-apply the patch on the already-created client's internal
     # HttpClient so subsequent calls also use our mock.
     client._mock_resp = mock_resp
-    client._mock_client_cls_patcher = patch("quantilica.core.http.httpx.Client")
+    client._mock_client_cls_patcher = patch("quantilica.core.http.httpx2.Client")
     mock_client_cls2 = client._mock_client_cls_patcher.start()
     mock_inst2 = mock_client_cls2.return_value.__enter__.return_value
     mock_inst2.request.return_value = mock_resp
@@ -57,12 +57,12 @@ class TestFetcher(unittest.TestCase):
 
     def _patch_http(self, data: object) -> tuple[SidraClient, MagicMock]:
         """
-        Patch httpx.Client used inside quantilica.core.http so that
+        Patch httpx2.Client used inside quantilica.core.http so that
         every request returns a response whose .json() is *data*.
         Returns (client, mock_response).
         """
         mock_resp = _make_mock_response(data)
-        patcher = patch("quantilica.core.http.httpx.Client")
+        patcher = patch("quantilica.core.http.httpx2.Client")
         self._patchers.append(patcher)
         mock_cls = patcher.start()
         mock_instance = mock_cls.return_value.__enter__.return_value
@@ -340,7 +340,7 @@ class TestFetcher(unittest.TestCase):
 
     # ------------------------------------------------------------------
     # JSON serialisation round-trip for sys.modules mock is no longer
-    # needed since we patch at the httpx.Client level.
+    # needed since we patch at the httpx2.Client level.
     # The json / sys.modules imports were only used by the old approach.
     # ------------------------------------------------------------------
 

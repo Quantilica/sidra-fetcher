@@ -4,7 +4,7 @@
 """HTTP helpers to fetch metadata and data from IBGE's APIs.
 
 This module provides a small :class:`SidraClient` wrapper around
-``httpx`` used to download agregados indices, metadata, periods and
+``httpx2`` used to download agregados indices, metadata, periods and
 localidades as Python dataclasses defined in
 ``sidra_fetcher.api.agregados``.
 

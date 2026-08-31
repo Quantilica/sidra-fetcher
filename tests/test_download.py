@@ -420,7 +420,7 @@ class TestClientDownload(unittest.TestCase):
 
     def _make_client_with_responses(self, payloads: list[object]) -> SidraClient:
         responses = [_make_mock_response(p) for p in payloads]
-        patcher = patch("quantilica.core.http.httpx.Client")
+        patcher = patch("quantilica.core.http.httpx2.Client")
         self._patchers.append(patcher)
         mock_cls = patcher.start()
         mock_instance = mock_cls.return_value.__enter__.return_value
