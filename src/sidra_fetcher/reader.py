@@ -596,3 +596,62 @@ def save_agregado(agregado: Agregado, path: str | Path) -> None:
     )
     manifest_path = path.with_suffix(path.suffix + ".manifest.json")
     manifest.write_json(manifest_path)
+
+
+def load_agregado(path: str | Path) -> Agregado:
+    """Load an Agregado instance from a JSON file.
+
+    Args:
+        path: Path to the input JSON file.
+
+    Returns:
+        The deserialized Agregado instance.
+    """
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    nivel_territorial = AgregadoNivelTerritorial(**data["nivel_territorial"])
+    pesquisa = Pesquisa(**data["pesquisa"])
+    periodicidade = Periodicidade(**data["periodicidade"])
+
+    variaveis = [Variavel(**v) for v in data.get("variaveis", [])]
+
+    classificacoes = []
+    for c in data.get("classificacoes", []):
+        sumarizacao = ClassificacaoSumarizacao(**c["sumarizacao"])
+        categorias = [Categoria(**cat) for cat in c.get("categorias", [])]
+        classificacoes.append(
+            Classificacao(
+                id=c["id"],
+                nome=c["nome"],
+                sumarizacao=sumarizacao,
+                categorias=categorias,
+            )
+        )
+
+    periodos = read_periodos(data.get("periodos", []))
+
+    localidades = []
+    for loc in data.get("localidades", []):
+        nivel = NivelTerritorial(**loc["nivel"])
+        localidades.append(
+            Localidade(
+                id=loc["id"],
+                nome=loc["nome"],
+                nivel=nivel,
+            )
+        )
+
+    return Agregado(
+        id=data["id"],
+        nome=data["nome"],
+        url=data["url"],
+        pesquisa=pesquisa,
+        assunto=data["assunto"],
+        periodicidade=periodicidade,
+        nivel_territorial=nivel_territorial,
+        variaveis=variaveis,
+        classificacoes=classificacoes,
+        periodos=periodos,
+        localidades=localidades,
+    )
