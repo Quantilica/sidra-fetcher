@@ -347,12 +347,14 @@ class SidraClient:
         return download_agregado_dados(self, agregado_id, output_dir, **kwargs)
 
     def __enter__(self) -> "SidraClient":
-        """Context manager enter: return the client instance."""
+        self.client.__enter__()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
-        """Context manager exit."""
-        pass
+        self.client.__exit__(exc_type, exc_value, traceback)
+
+    def close(self) -> None:
+        self.client.close()
 
 
 class AsyncSidraClient:
@@ -578,9 +580,11 @@ class AsyncSidraClient:
         return plan_agregado_download(agregado, **filtros)
 
     async def __aenter__(self) -> "AsyncSidraClient":
-        """Async context manager enter: return the client instance."""
+        await self.client.__aenter__()
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:
-        """Async context manager exit."""
-        pass
+        await self.client.__aexit__(exc_type, exc_value, traceback)
+
+    async def aclose(self) -> None:
+        await self.client.aclose()
