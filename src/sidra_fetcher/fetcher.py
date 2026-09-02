@@ -347,14 +347,25 @@ class SidraClient:
         return download_agregado_dados(self, agregado_id, output_dir, **kwargs)
 
     def __enter__(self) -> "SidraClient":
-        self.client.__enter__()
+        if hasattr(self.client, "__enter__"):
+            self.client.__enter__()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
-        self.client.__exit__(exc_type, exc_value, traceback)
+        if hasattr(self.client, "__exit__"):
+            self.client.__exit__(exc_type, exc_value, traceback)
+        elif hasattr(self.client, "close"):
+            try:
+                self.client.close()
+            except Exception:
+                pass
 
     def close(self) -> None:
-        self.client.close()
+        if hasattr(self.client, "close"):
+            try:
+                self.client.close()
+            except Exception:
+                pass
 
 
 class AsyncSidraClient:
@@ -580,11 +591,22 @@ class AsyncSidraClient:
         return plan_agregado_download(agregado, **filtros)
 
     async def __aenter__(self) -> "AsyncSidraClient":
-        await self.client.__aenter__()
+        if hasattr(self.client, "__aenter__"):
+            await self.client.__aenter__()
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:
-        await self.client.__aexit__(exc_type, exc_value, traceback)
+        if hasattr(self.client, "__aexit__"):
+            await self.client.__aexit__(exc_type, exc_value, traceback)
+        elif hasattr(self.client, "aclose"):
+            try:
+                await self.client.aclose()
+            except Exception:
+                pass
 
     async def aclose(self) -> None:
-        await self.client.aclose()
+        if hasattr(self.client, "aclose"):
+            try:
+                await self.client.aclose()
+            except Exception:
+                pass
