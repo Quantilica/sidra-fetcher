@@ -35,7 +35,7 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
-from quantilica.core.manifests import DownloadManifest
+from quantilica.core.manifests import DownloadManifest, write_manifest_sidecar
 from quantilica.core.storage import LocalStorage
 
 from .agregados import (
@@ -594,8 +594,7 @@ def save_agregado(agregado: Agregado, path: str | Path) -> None:
             "pesquisa": agregado.pesquisa.nome,
         },
     )
-    manifest_path = path.with_suffix(path.suffix + ".manifest.json")
-    manifest.write_json(manifest_path)
+    write_manifest_sidecar(path, manifest)
 
 
 def load_agregado(path: str | Path) -> Agregado:

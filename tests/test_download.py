@@ -387,7 +387,7 @@ class TestRateLimiter(unittest.TestCase):
         limiter = _RateLimiter(0.02)
         inicio = time.monotonic()
         for _ in range(3):
-            limiter.wait()
+            limiter.acquire()
         elapsed = time.monotonic() - inicio
         # 3 chamadas com intervalo mínimo de 0.02 s: a 1ª é imediata, a 2ª e a
         # 3ª esperam ~0.02 s cada → total >= ~0.04 s.
@@ -397,7 +397,7 @@ class TestRateLimiter(unittest.TestCase):
         limiter = _RateLimiter(0.0)
         inicio = time.monotonic()
         for _ in range(100):
-            limiter.wait()
+            limiter.acquire()
         self.assertLess(time.monotonic() - inicio, 0.05)
 
 

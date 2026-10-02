@@ -31,7 +31,6 @@ import hashlib
 import json
 import os
 import tempfile
-import threading
 import time
 from collections.abc import Callable, Generator
 from concurrent.futures import as_completed
@@ -45,39 +44,14 @@ except ImportError:
     from concurrent.futures import ThreadPoolExecutor as graceful_executor
 
 from quantilica.core.exceptions import FetchError
-from quantilica.core.manifests import DownloadManifest
+from quantilica.core.http import _RateLimiter
+from quantilica.core.manifests import DownloadManifest, write_manifest_sidecar
 
 from .agregados import Agregado
 from .sidra import SIDRA_API_VALUES_LIMIT, Formato, Parametro, Precisao
 
 if TYPE_CHECKING:
     from .fetcher import SidraClient
-
-
-class _RateLimiter:
-    """Limitador de taxa thread-safe: garante ``min_interval`` segundos entre
-    o início de requisições consecutivas, mesmo com vários workers.
-
-    Reserva o próximo horário permitido sob lock (operação rápida) e dorme
-    fora do lock, para que os workers não se serializem no sleep e a thread
-    principal nunca fique bloqueada esperando o delay.
-    """
-
-    def __init__(self, min_interval: float) -> None:
-        self.min_interval = min_interval
-        self._lock = threading.Lock()
-        self._next = 0.0
-
-    def wait(self) -> None:
-        if self.min_interval <= 0:
-            return
-        with self._lock:
-            now = time.monotonic()
-            alvo = max(now, self._next)
-            self._next = alvo + self.min_interval
-        espera = alvo - now
-        if espera > 0:
-            time.sleep(espera)
 
 
 def _validar_linhas(url: str, linhas: object) -> list:
@@ -525,7 +499,7 @@ def _download_nivel(
         else:
             ctx = contextlib.nullcontext()
         with ctx:
-            limiter.wait()
+            limiter.acquire()
             return _validar_linhas(url, client.get(url))
 
     try:
@@ -561,8 +535,7 @@ def _download_nivel(
         producer="sidra-fetcher",
         metadata={"nivel_territorial": nivel, "n_requests": len(grupo)},
     )
-    manifest_path = target.with_suffix(target.suffix + ".manifest.json")
-    manifest.write_json(manifest_path)
+    write_manifest_sidecar(target, manifest)
     return target
 
 

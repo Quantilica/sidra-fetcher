@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.10.4] - 2026-10-02
+### Alterado
+- Adoção das abstrações canônicas de `quantilica-core` 0.8.0: o `_RateLimiter`
+  de `sidra_fetcher.download` agora é reexport da implementação canônica em
+  `quantilica.core.http` (API `acquire()`), e a escrita de sidecars de
+  proveniência em `download_agregado_dados_raw`/`_download_nivel` e
+  `save_agregado` usa `write_manifest_sidecar()` de `quantilica.core.manifests`.
+- Dependência `quantilica-core` elevada para `>=0.8.0`.
+
 ## [0.10.3] - 2026-08-31
 ### Corrigido
 - `load_agregado()` restaurado em `sidra_fetcher.reader` — o refactor v0.9.0 removeu o par de leitura de `save_agregado()`, quebrando o round-trip de metadata consumido por `sidra-sql` (`Storage.read_metadata`). Novo teste de round-trio cobre o par save/load.
