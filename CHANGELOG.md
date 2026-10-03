@@ -1,5 +1,10 @@
 # Changelog
 
+## [Não lançado]
+
+### Alterado
+- Migração de `sidra_fetcher.download` para o símbolo público `RateLimiter` de `quantilica.core.http`, eliminando importação de símbolo privado.
+
 ## [0.10.4] - 2026-10-02
 ### Alterado
 - Adoção das abstrações canônicas de `quantilica-core` 0.8.0: o `_RateLimiter`
