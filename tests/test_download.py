@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 from quantilica.core.exceptions import FetchError
+from quantilica.core.http import RateLimiter
 
 from sidra_fetcher.agregados import (
     Agregado,
@@ -25,7 +26,6 @@ from sidra_fetcher.agregados import (
     Variavel,
 )
 from sidra_fetcher.download import (
-    _RateLimiter,
     describe_download_plan,
     plan_agregado_download,
 )
@@ -384,7 +384,7 @@ class TestPlanAgregadoDownload(unittest.TestCase):
 
 class TestRateLimiter(unittest.TestCase):
     def test_spaces_calls(self):
-        limiter = _RateLimiter(0.02)
+        limiter = RateLimiter(0.02)
         inicio = time.monotonic()
         for _ in range(3):
             limiter.acquire()
@@ -394,7 +394,7 @@ class TestRateLimiter(unittest.TestCase):
         self.assertGreaterEqual(elapsed, 0.035)
 
     def test_zero_interval_is_noop(self):
-        limiter = _RateLimiter(0.0)
+        limiter = RateLimiter(0.0)
         inicio = time.monotonic()
         for _ in range(100):
             limiter.acquire()

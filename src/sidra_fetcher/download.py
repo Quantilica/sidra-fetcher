@@ -44,7 +44,7 @@ except ImportError:
     from concurrent.futures import ThreadPoolExecutor as graceful_executor
 
 from quantilica.core.exceptions import FetchError
-from quantilica.core.http import _RateLimiter
+from quantilica.core.http import RateLimiter
 from quantilica.core.manifests import DownloadManifest, write_manifest_sidecar
 
 from .agregados import Agregado
@@ -487,7 +487,7 @@ def _download_nivel(
         digest.update(encoded)
         tamanho += len(encoded)
 
-    limiter = _RateLimiter(politeness_delay)
+    limiter = RateLimiter(politeness_delay)
 
     def _fetch(chunk: DownloadChunk) -> list:
         # O delay é aplicado aqui, dentro do worker, para não bloquear a
