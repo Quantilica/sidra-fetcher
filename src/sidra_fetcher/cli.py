@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from pathlib import Path
 
 from quantilica.core.logging import configure_cli_logging
 
@@ -121,23 +122,66 @@ def _parse_classificacoes(items: list[str]) -> dict[str, list[str]] | None:
 
 
 def handle_download(args: argparse.Namespace):
-    """Handle `download`.
+    """Handle `sync` (e o alias depreciado `download`).
 
     Args:
         args (argparse.Namespace): Parsed command-line arguments.
     """
-    filtros = {
-        "niveis_territoriais": _parse_lista(args.niveis),
-        "variaveis": _parse_lista(args.variaveis),
-        "periodos": _parse_lista(args.periodos),
-        "classificacoes": _parse_classificacoes(args.classificacao),
-    }
+    if getattr(args, "command", None) == "download":
+        print(
+            "Aviso: 'download' está depreciado e será removido; use 'sync'.",
+            file=sys.stderr,
+        )
+    from_plan = getattr(args, "from_plan", None)
+    if from_plan is not None:
+        if args.niveis or args.variaveis or args.periodos or args.classificacao:
+            print(
+                "Erro: '--from-plan' não combina com filtros "
+                "(--niveis/--variaveis/--periodos/--classificacao); o plano "
+                "já define o escopo."
+            )
+            sys.exit(1)
+        import json
+
+        try:
+            plan = json.loads(Path(from_plan).read_text(encoding="utf-8"))
+            items = plan["items"]
+        except (OSError, ValueError, KeyError) as e:
+            print(f"Erro: plano inválido: {e}")
+            sys.exit(1)
+        dl = [it for it in items if it.get("action") == "download"]
+        if not dl:
+            print("Nada a baixar: plano sem ação 'download'.")
+            return
+        filtros = dict(dl[0].get("entry", {}).get("filtros") or {})
+        try:
+            agregado_id = int(dl[0].get("entry", {}).get("agregado_id"))
+        except (TypeError, ValueError) as e:
+            print(f"Erro: plano inválido: agregado_id ({e})")
+            sys.exit(1)
+        niveis = sorted({str(it.get("entry", {}).get("nivel", "")) for it in dl})
+        filtros["niveis_territoriais"] = [n for n in niveis if n]
+        print(
+            f"Plano {from_plan}: {len(dl)} nível(is) com ação 'download' "
+            f"de {len(items)} verificado(s)."
+        )
+    else:
+        if args.agregado_id is None:
+            print("Erro: informe o ID do agregado (ou use --from-plan).")
+            sys.exit(1)
+        agregado_id = args.agregado_id
+        filtros = {
+            "niveis_territoriais": _parse_lista(args.niveis),
+            "variaveis": _parse_lista(args.variaveis),
+            "periodos": _parse_lista(args.periodos),
+            "classificacoes": _parse_classificacoes(args.classificacao),
+        }
 
     with SidraClient() as client:
         try:
-            agregado = client.get_agregado(args.agregado_id)
+            agregado = client.get_agregado(agregado_id)
             chunks = client.plan_dados_agregado(
-                args.agregado_id, agregado=agregado, **filtros
+                agregado_id, agregado=agregado, **filtros
             )
         except Exception as e:
             print(f"Erro ao planejar download: {e}")
@@ -171,7 +215,7 @@ def handle_download(args: argparse.Namespace):
 
         try:
             paths = client.download_dados_agregado(
-                args.agregado_id,
+                agregado_id,
                 args.output,
                 agregado=agregado,
                 max_workers=args.workers,
@@ -185,6 +229,54 @@ def handle_download(args: argparse.Namespace):
 
     for p in paths:
         print(f"Gravado: {p}")
+
+
+def handle_check(args: argparse.Namespace):
+    """Handle `check` (verificação sem download).
+
+    Args:
+        args (argparse.Namespace): Parsed command-line arguments.
+    """
+    import datetime as _dt
+    import json as _json
+
+    from sidra_fetcher.check import check_agregado
+
+    filtros = {
+        "niveis_territoriais": _parse_lista(args.niveis),
+        "variaveis": _parse_lista(args.variaveis),
+        "periodos": _parse_lista(args.periodos),
+        "classificacoes": _parse_classificacoes(args.classificacao),
+    }
+
+    with SidraClient() as client:
+        try:
+            veredictos, _resumo = check_agregado(
+                client, args.agregado_id, args.output, filtros
+            )
+        except Exception as e:
+            print(f"Erro ao verificar agregado: {e}")
+            sys.exit(1)
+
+    if args.json:
+        plano = {
+            "fetcher": "sidra-fetcher",
+            "output_dir": str(args.output),
+            "generated_at": _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds"),
+            "items": veredictos,
+        }
+        print(_json.dumps(plano, ensure_ascii=False, indent=2))
+        return
+
+    print(f"{'Nível':<8} {'Ação':<16} {'Motivo':<20} Remoto")
+    print("-" * 70)
+    counts: dict[str, int] = {}
+    for v in veredictos:
+        counts[v["action"]] = counts.get(v["action"], 0) + 1
+        remoto = v["remote_last_modified"] or "—"
+        print(f"{v['partition']:<8} {v['action']:<16} {v['reason']:<20} {remoto}")
+    resumo = ", ".join(f"{n} {a}" for a, n in sorted(counts.items()))
+    print(f"\n{len(veredictos)} verificado(s): {resumo}.")
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -235,39 +327,80 @@ def get_parser() -> argparse.ArgumentParser:
     p_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
     p_parser.set_defaults(func=handle_periods)
 
-    # download
-    d_parser = subparsers.add_parser(
-        "download", help="Baixar todos os dados de um agregado."
+    def _add_filtros(p: argparse.ArgumentParser) -> None:
+        p.add_argument(
+            "--niveis", help="Níveis territoriais (ex: N3,N6). Padrão: todos."
+        )
+        p.add_argument(
+            "--variaveis",
+            help="IDs de variáveis, separados por vírgula. Padrão: todas.",
+        )
+        p.add_argument(
+            "--periodos", help="IDs de períodos, separados por vírgula. Padrão: todos."
+        )
+        p.add_argument(
+            "--classificacao",
+            action="append",
+            default=[],
+            help="ID=cat1,cat2 (repetível). Padrão: todas as categorias.",
+        )
+
+    def _add_execucao(p: argparse.ArgumentParser) -> None:
+        p.add_argument("--workers", type=int, default=4, help="Downloads paralelos")
+        p.add_argument(
+            "--delay", type=float, default=0.2, help="Pausa entre requests (segundos)."
+        )
+        p.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Só mostra o plano de download, sem baixar nada.",
+        )
+
+    # sync (verbo canônico de download)
+    s_parser = subparsers.add_parser(
+        "sync", help="Baixar todos os dados de um agregado."
     )
-    d_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
+    s_parser.add_argument("agregado_id", type=int, nargs="?", help="ID do agregado.")
+    s_parser.add_argument(
+        "-o", "--output", default="/data/sidra", help="Diretório de saída."
+    )
+    _add_filtros(s_parser)
+    s_parser.add_argument(
+        "--from-plan",
+        help="Baixar somente os níveis com ação 'download' de um plano "
+        "gerado por 'check' (não combinar com filtros).",
+    )
+    _add_execucao(s_parser)
+    s_parser.set_defaults(func=handle_download)
+
+    # download (alias depreciado de sync)
+    d_parser = subparsers.add_parser(
+        "download",
+        help="Alias depreciado de 'sync' (será removido; use 'sync').",
+    )
+    d_parser.add_argument("agregado_id", type=int, nargs="?", help="ID do agregado.")
     d_parser.add_argument(
         "-o", "--output", default="/data/sidra", help="Diretório de saída."
     )
-    d_parser.add_argument(
-        "--niveis", help="Níveis territoriais (ex: N3,N6). Padrão: todos."
-    )
-    d_parser.add_argument(
-        "--variaveis", help="IDs de variáveis, separados por vírgula. Padrão: todas."
-    )
-    d_parser.add_argument(
-        "--periodos", help="IDs de períodos, separados por vírgula. Padrão: todos."
-    )
-    d_parser.add_argument(
-        "--classificacao",
-        action="append",
-        default=[],
-        help="ID=cat1,cat2 (repetível). Padrão: todas as categorias.",
-    )
-    d_parser.add_argument("--workers", type=int, default=4, help="Downloads paralelos")
-    d_parser.add_argument(
-        "--delay", type=float, default=0.2, help="Pausa entre requests (segundos)."
-    )
-    d_parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Só mostra o plano de download, sem baixar nada.",
-    )
+    _add_filtros(d_parser)
+    _add_execucao(d_parser)
     d_parser.set_defaults(func=handle_download)
+
+    # check
+    c_parser = subparsers.add_parser(
+        "check", help="Verificar frescor de um agregado sem baixar."
+    )
+    c_parser.add_argument("agregado_id", type=int, help="ID do agregado.")
+    c_parser.add_argument(
+        "-o", "--output", default="/data/sidra", help="Diretório de saída."
+    )
+    _add_filtros(c_parser)
+    c_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Imprime o plano em JSON (para 'sync --from-plan').",
+    )
+    c_parser.set_defaults(func=handle_check)
 
     return parser
 

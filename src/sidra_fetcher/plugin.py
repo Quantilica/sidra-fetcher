@@ -5,11 +5,12 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from pathlib import Path
 from typing import Annotated
 
 import typer
-from quantilica.cli.sdk import FetcherApp
+from quantilica.cli.sdk import CheckPlan, CheckPlanItem, FetcherApp
 from quantilica.cli.ui import (
     ProgressPool,
     get_console,
@@ -22,6 +23,7 @@ from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 
+from sidra_fetcher.check import check_agregado
 from sidra_fetcher.cli import _parse_classificacoes, _parse_lista
 from sidra_fetcher.download import describe_download_plan
 from sidra_fetcher.fetcher import SidraClient
@@ -194,7 +196,69 @@ def cmd_periods(
     console.print(table)
 
 
-@app.command("download")
+@app.command("sync")
+def cmd_sync(
+    agregado_id: Annotated[
+        int | None,
+        typer.Argument(help="ID do agregado (ex: 1705). Ignorado com --from-plan."),
+    ] = None,
+    output: Annotated[
+        Path, typer.Option("--output", "-o", help="Diretório de saída")
+    ] = _DEFAULT_OUTPUT,
+    niveis: Annotated[
+        str | None,
+        typer.Option(
+            "--niveis", help="Níveis territoriais (ex: N3,N6). Padrão: todos."
+        ),
+    ] = None,
+    variaveis: Annotated[
+        str | None,
+        typer.Option("--variaveis", help="IDs de variáveis, separados por vírgula."),
+    ] = None,
+    periodos: Annotated[
+        str | None,
+        typer.Option("--periodos", help="IDs de períodos, separados por vírgula."),
+    ] = None,
+    classificacao: Annotated[
+        list[str],
+        typer.Option(
+            "--classificacao", help="ID=cat1,cat2 (repetível). Padrão: todas."
+        ),
+    ] = [],  # noqa: B006 - typer exige um default mutável para opções repetíveis
+    workers: Annotated[int, typer.Option("--workers", help="Downloads paralelos")] = 4,
+    delay: Annotated[
+        float, typer.Option("--delay", help="Pausa entre requests (segundos)")
+    ] = 0.2,
+    from_plan: Annotated[
+        Path | None,
+        typer.Option(
+            "--from-plan",
+            help="Baixar somente os níveis com ação 'download' de um plano "
+            "gerado por 'check' (não combinar com filtros).",
+        ),
+    ] = None,
+    dry_run: Annotated[
+        bool, typer.Option("--dry-run", help="Só mostra o plano, sem baixar")
+    ] = False,
+    verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
+) -> None:
+    """Baixar todos os dados de um agregado, respeitando o limite da API."""
+    _run_sync(
+        agregado_id,
+        output,
+        niveis,
+        variaveis,
+        periodos,
+        classificacao,
+        workers,
+        delay,
+        from_plan,
+        dry_run,
+        verbose,
+    )
+
+
+@app.command("download", help="Alias DEPRECIADO de 'sync' (será removido).")
 def cmd_download(
     agregado_id: Annotated[int, typer.Argument(help="ID do agregado (ex: 1705)")],
     output: Annotated[
@@ -229,14 +293,82 @@ def cmd_download(
     ] = False,
     verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
-    """Baixar todos os dados de um agregado, respeitando o limite da API."""
+    """Alias depreciado de `sync` (será removido; use `sync`)."""
+    console.print(
+        "[yellow]Aviso:[/yellow] 'download' está depreciado e será removido; "
+        "use 'sync'."
+    )
+    _run_sync(
+        agregado_id,
+        output,
+        niveis,
+        variaveis,
+        periodos,
+        classificacao,
+        workers,
+        delay,
+        None,
+        dry_run,
+        verbose,
+    )
+
+
+def _run_sync(
+    agregado_id: int,
+    output: Path,
+    niveis: str | None,
+    variaveis: str | None,
+    periodos: str | None,
+    classificacao: list[str],
+    workers: int,
+    delay: float,
+    from_plan: Path | None,
+    dry_run: bool,
+    verbose: bool,
+) -> None:
+    """Implementação compartilhada de `sync` (e do alias `download`)."""
     setup_rich_logging(verbose, console=console)
-    filtros = {
-        "niveis_territoriais": _parse_lista(niveis),
-        "variaveis": _parse_lista(variaveis),
-        "periodos": _parse_lista(periodos),
-        "classificacoes": _parse_classificacoes(classificacao),
-    }
+    if from_plan is not None:
+        if niveis or variaveis or periodos or classificacao:
+            console.print(
+                "[red]Erro:[/red] '--from-plan' não combina com filtros "
+                "(--niveis/--variaveis/--periodos/--classificacao); o plano "
+                "já define o escopo."
+            )
+            raise typer.Exit(1)
+        try:
+            plan = CheckPlan.from_json(from_plan.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            console.print(f"[red]Plano inválido:[/red] {exc}")
+            raise typer.Exit(1) from None
+        dl = [it for it in plan.items if it.action == "download"]
+        if not dl:
+            console.print("[green]Nada a baixar:[/green] plano sem ação 'download'.")
+            return
+        filtros = dict(dl[0].entry.get("filtros") or {})
+        try:
+            agregado_id = int(dl[0].entry.get("agregado_id", agregado_id))
+        except (TypeError, ValueError) as exc:
+            console.print(f"[red]Plano inválido:[/red] agregado_id ({exc})")
+            raise typer.Exit(1) from None
+        niveis_list = sorted({str(it.entry.get("nivel", "")) for it in dl} or {None})
+        filtros["niveis_territoriais"] = [n for n in niveis_list if n]
+        console.print(
+            f"[dim]Plano {from_plan}: {len(dl)} nível(is) com ação 'download' "
+            f"de {len(plan.items)} verificado(s).[/dim]"
+        )
+    else:
+        if agregado_id is None:
+            console.print(
+                "[red]Erro:[/red] informe o ID do agregado (ou use --from-plan)."
+            )
+            raise typer.Exit(1)
+        filtros = {
+            "niveis_territoriais": _parse_lista(niveis),
+            "variaveis": _parse_lista(variaveis),
+            "periodos": _parse_lista(periodos),
+            "classificacoes": _parse_classificacoes(classificacao),
+        }
 
     with SidraClient() as client:
         try:
@@ -307,6 +439,68 @@ def cmd_download(
 
     for p in paths:
         console.print(f"[green]Gravado:[/green] {p}")
+
+
+@app.command("check")
+def cmd_check(
+    agregado_id: Annotated[int, typer.Argument(help="ID do agregado (ex: 1705)")],
+    output: Annotated[
+        Path, typer.Option("--output", "-o", help="Diretório de saída")
+    ] = _DEFAULT_OUTPUT,
+    niveis: Annotated[
+        str | None,
+        typer.Option(
+            "--niveis", help="Níveis territoriais (ex: N3,N6). Padrão: todos."
+        ),
+    ] = None,
+    variaveis: Annotated[
+        str | None,
+        typer.Option("--variaveis", help="IDs de variáveis, separados por vírgula."),
+    ] = None,
+    periodos: Annotated[
+        str | None,
+        typer.Option("--periodos", help="IDs de períodos, separados por vírgula."),
+    ] = None,
+    classificacao: Annotated[
+        list[str],
+        typer.Option(
+            "--classificacao", help="ID=cat1,cat2 (repetível). Padrão: todas."
+        ),
+    ] = [],  # noqa: B006 - typer exige um default mutável para opções repetíveis
+    as_json: Annotated[
+        bool,
+        typer.Option(
+            "--json",
+            help="Imprime o plano em JSON (para 'sync --from-plan').",
+        ),
+    ] = False,
+    verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
+) -> None:
+    """Verificar frescor de um agregado sem baixar (plano por nível)."""
+    setup_rich_logging(verbose, console=console)
+    filtros = {
+        "niveis_territoriais": _parse_lista(niveis),
+        "variaveis": _parse_lista(variaveis),
+        "periodos": _parse_lista(periodos),
+        "classificacoes": _parse_classificacoes(classificacao),
+    }
+    with SidraClient() as client:
+        try:
+            veredictos, _resumo = check_agregado(client, agregado_id, output, filtros)
+        except Exception as e:
+            console.print(f"[red]Erro ao verificar agregado:[/red] {e}")
+            raise typer.Exit(1) from e
+    generated = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
+    plan = CheckPlan(
+        fetcher="sidra-fetcher",
+        output_dir=str(output),
+        generated_at=generated,
+        items=[CheckPlanItem(**v) for v in veredictos],
+    )
+    if as_json:
+        print(plan.to_json())
+    else:
+        plan.render_table()
 
 
 if __name__ == "__main__":
