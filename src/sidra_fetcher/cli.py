@@ -376,7 +376,8 @@ def get_parser() -> argparse.ArgumentParser:
     # download (alias depreciado de sync)
     d_parser = subparsers.add_parser(
         "download",
-        help="Alias depreciado de 'sync' (será removido; use 'sync').",
+        help="Alias DEPRECADO de 'sync' (equivale a 'sync'; será removido; "
+        "use 'sync'. '--from-plan' só existe em 'sync').",
     )
     d_parser.add_argument("agregado_id", type=int, nargs="?", help="ID do agregado.")
     d_parser.add_argument(

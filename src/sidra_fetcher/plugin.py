@@ -80,8 +80,6 @@ list_sub = typer.Typer(help="Listar pesquisas e agregados do IBGE.")
 app.add_typer(list_sub, name="list")
 console = get_console()
 
-_DEFAULT_OUTPUT = Path("/data/sidra")
-
 
 @list_sub.command("pesquisas")
 def cmd_list_pesquisas(
@@ -258,7 +256,11 @@ def cmd_sync(
     )
 
 
-@app.command("download", help="Alias DEPRECIADO de 'sync' (será removido).")
+@app.command(
+    "download",
+    help="Alias DEPRECADO de 'sync' (equivale a 'sync'; será removido; "
+    "use 'sync'. '--from-plan' só existe em 'sync').",
+)
 def cmd_download(
     agregado_id: Annotated[int, typer.Argument(help="ID do agregado (ex: 1705)")],
     output: Annotated[
@@ -293,7 +295,10 @@ def cmd_download(
     ] = False,
     verbose: Annotated[bool, typer.Option("--verbose", help="Logs detalhados")] = False,
 ) -> None:
-    """Alias depreciado de `sync` (será removido; use `sync`)."""
+    """Alias DEPRECADO de `sync` (equivale a `sync`; será removido).
+
+    Use `sync`. `--from-plan` só existe em `sync`.
+    """
     console.print(
         "[yellow]Aviso:[/yellow] 'download' está depreciado e será removido; "
         "use 'sync'."
