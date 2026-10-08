@@ -5,10 +5,11 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [Não lançado]
+## [0.10.5] - 2026-10-08
 
 ### Alterado
 - Migração de `sidra_fetcher.download` para o símbolo público `RateLimiter` de `quantilica.core.http`, eliminando importação de símbolo privado.
+- Canal de distribuição migrado do PyPI para GitHub Releases + índice `index.quantilica.com` (Fluxo B); `pip install` direto do PyPI deixa de receber novas versões.
 
 ### Corrigido
 - Removida a definição duplicada de `_DEFAULT_OUTPUT` em `plugin.py` (valor idêntico nos dois pontos; mantida a definição única no topo do módulo).
