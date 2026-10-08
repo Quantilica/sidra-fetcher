@@ -72,6 +72,9 @@ select = ["E", "F", "I", "UP", "B"]
 # Mock setup must precede package imports in this test file
 "tests/test_fetcher.py" = ["E402"]
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/sidra_fetcher"]
+
 [build-system]
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"

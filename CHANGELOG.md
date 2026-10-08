@@ -1,5 +1,10 @@
 # Changelog
 
+Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
+
+O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
+e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
+
 ## [Não lançado]
 
 ### Alterado
@@ -34,11 +39,6 @@
 ## [0.9.0] - 2026-08-07
 ### Alterado
 - Refatoração arquitetural: Remoção de dependências (`quantilica-cli` e `quantilica-catalog`) e limpeza de imports. Os fetchers agora são pacotes de extração puros, dependendo estritamente do `quantilica-core`.
-
-Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
-
-O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
-e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [0.8.0] - 2026-07-22
 

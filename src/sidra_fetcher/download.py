@@ -33,15 +33,10 @@ import os
 import tempfile
 import time
 from collections.abc import Callable, Generator
-from concurrent.futures import as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-
-try:
-    from quantilica.cli.ui import graceful_executor
-except ImportError:
-    from concurrent.futures import ThreadPoolExecutor as graceful_executor
 
 from quantilica.core.exceptions import FetchError
 from quantilica.core.http import RateLimiter
@@ -52,6 +47,18 @@ from .sidra import SIDRA_API_VALUES_LIMIT, Formato, Parametro, Precisao
 
 if TYPE_CHECKING:
     from .fetcher import SidraClient
+
+
+@contextlib.contextmanager
+def graceful_executor(max_workers: int) -> Generator[ThreadPoolExecutor, None, None]:
+    """ThreadPoolExecutor que cancela os futures pendentes no Ctrl-C."""
+    executor = ThreadPoolExecutor(max_workers=max_workers)
+    try:
+        yield executor
+        executor.shutdown(wait=True)
+    except KeyboardInterrupt:
+        executor.shutdown(wait=False, cancel_futures=True)
+        raise
 
 
 def _validar_linhas(url: str, linhas: object) -> list:
