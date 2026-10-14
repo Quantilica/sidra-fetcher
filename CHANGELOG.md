@@ -5,7 +5,7 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
-## [Não lançado]
+## [0.10.6] - 2026-10-14
 
 ### Alterado
 - Docstrings de `SidraClient` e `AsyncSidraClient` avisam que a conexão só é reaproveitada dentro de `with`/`async with`: fora do gerenciador de contexto cada requisição abre uma conexão nova (medido em 2026-10-13: cerca de 140 ms contra 1,2 s por requisição pequena no cliente síncrono) e que o cliente assíncrono não mostrou ganho consistente sobre o síncrono.
