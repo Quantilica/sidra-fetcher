@@ -57,6 +57,12 @@ class SidraClient:
     The class provides convenience methods to fetch agregados index,
     metadata, periods and localidades and to build higher level
     aggregate objects from the API responses.
+
+    Use it as a context manager (``with SidraClient() as client:``). The
+    underlying ``HttpClient`` only keeps a persistent connection inside the
+    context; outside it every request opens (and closes) its own client, with a
+    new TLS handshake. In a 2026-10-13 measurement against the IBGE API that
+    was ~140 ms per small request inside ``with`` and ~1.2 s outside.
     """
 
     def __init__(
@@ -360,6 +366,14 @@ class SidraClient:
 class AsyncSidraClient:
     """Async HTTP client for interacting with IBGE's agregados and
     SIDRA APIs.
+
+    Use it as an async context manager (``async with AsyncSidraClient() as
+    client:``). Outside the context every request opens (and closes) its own
+    client, with a new TLS handshake: ~830 ms per small request instead of
+    ~220 ms in a 2026-10-13 measurement against the IBGE API. Sequential and
+    ``asyncio.gather`` calls to the metadata endpoints showed no consistent
+    speedup over :class:`SidraClient`; the API's response time varies more
+    than the difference between the two.
     """
 
     def __init__(self, timeout: int = 60) -> None:
