@@ -5,6 +5,11 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Corrigido
+- `quantilica sidra periods` falhava com `AttributeError: 'Periodo' object has no attribute 'nome'` para qualquer agregado. A tabela agora mostra `id`, o primeiro literal do período, `frequencia` e `modificacao`, todos atributos de `Periodo`.
+
 ## [0.10.5] - 2026-10-08
 
 ### Alterado

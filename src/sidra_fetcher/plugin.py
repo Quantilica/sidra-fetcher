@@ -185,11 +185,17 @@ def cmd_periods(
 
     table = Table(title=f"Períodos para Agregado {agregado_id}", show_header=True)
     table.add_column("ID", style="cyan")
-    table.add_column("Nome", style="green")
+    table.add_column("Período", style="green")
+    table.add_column("Frequência", style="dim")
     table.add_column("Modificação", style="dim")
 
     for p in periodos:
-        table.add_row(p.id, p.nome, p.modificacao.isoformat())
+        table.add_row(
+            p.id,
+            p.literals[0] if p.literals else "—",
+            p.frequencia or "—",
+            p.modificacao.isoformat(),
+        )
 
     console.print(table)
 
