@@ -509,7 +509,7 @@ def cmd_check(
         items=[CheckPlanItem(**v) for v in veredictos],
     )
     if as_json:
-        print(plan.to_json())
+        console.print(plan.to_json(), markup=False, soft_wrap=True)
     else:
         plan.render_table()
 

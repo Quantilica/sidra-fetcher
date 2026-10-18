@@ -130,7 +130,7 @@ class Parametro:
         cabecalho: bool = True,
         # Padrão é "a" (códigos e nomes dos descritores)
         formato: Formato = Formato.A,
-        decimais: dict[str, Precisao] = None,
+        decimais: dict[str, Precisao] | None = None,
     ) -> None:
         """Initialize a Parametro object.
 

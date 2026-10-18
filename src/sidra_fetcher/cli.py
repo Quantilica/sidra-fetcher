@@ -95,10 +95,10 @@ def handle_periods(args: argparse.Namespace):
             sys.exit(1)
 
     print(f"Períodos para Agregado {args.agregado_id}:")
-    print(f"{'ID':<10} {'Nome':<30} {'Modificação'}")
-    print("-" * 60)
+    print(f"{'ID':<10} {'Modificação'}")
+    print("-" * 40)
     for p in periodos:
-        print(f"{p.id:<10} {p.nome:<30} {p.modificacao.isoformat()}")
+        print(f"{p.id:<10} {p.modificacao.isoformat()}")
 
 
 def _parse_lista(valor: str | None) -> list[str] | None:
