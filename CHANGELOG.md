@@ -5,6 +5,13 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [0.10.7] - 2026-10-20
+
+### Corrigido
+- `sidra-fetcher periods`: corrige comando standalone da CLI (`cli.py`) que ainda referenciava o atributo inexistente `Periodo.nome`.
+- `cmd_check` no plugin Typer: substitui `print(plan.to_json())` por `console.print(..., markup=False, soft_wrap=True)`.
+- Correção de anotação de tipo em `Parametro(decimais: dict[str, Precisao] | None = None)`.
+
 ## [0.10.6] - 2026-10-14
 
 ### Alterado
