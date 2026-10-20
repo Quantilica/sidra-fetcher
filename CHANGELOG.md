@@ -5,6 +5,12 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Corrigido
+- `SIDRA_API_VALUES_LIMIT` reduzido de 100.000 para 50.000 valores: a API SIDRA passou a responder HTTP 400 ("Quantidade de valores solicitados: N excedeu o limite: 50000") acima desse total, e `quantilica sidra sync 6579 --niveis N6 --periodos <10 anos>` planejava um único request de 55.710 valores e falhava. O plano agora divide esse caso em 10 requests (um por período).
+- HTTP 400 de limite excedido vira `SidraLimitError` (subclasse de `FetchError`, exportada por `sidra_fetcher.fetcher`) com a mensagem da API e sugestão de restringir a seleção; demais erros HTTP do SIDRA viram `FetchError` com o corpo da resposta. `sync` (plugin e CLI standalone) imprime o erro e sai com código 1 em vez de traceback.
+
 ## [0.10.7] - 2026-10-20
 
 ### Corrigido

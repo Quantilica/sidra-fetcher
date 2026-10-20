@@ -96,7 +96,7 @@ class TestSidra(unittest.TestCase):
 
     def test_values_limit_constant(self):
         self.assertIsInstance(SIDRA_API_VALUES_LIMIT, int)
-        self.assertEqual(SIDRA_API_VALUES_LIMIT, 100_000)
+        self.assertEqual(SIDRA_API_VALUES_LIMIT, 50_000)
 
     def test_parse_url(self):
         parsed = parse_url(url)

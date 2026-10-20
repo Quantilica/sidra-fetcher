@@ -18,8 +18,10 @@ from quantilica.cli.ui import (
     make_download_progress,
     setup_rich_logging,
 )
+from quantilica.core.exceptions import FetchError
 from rich.console import Group
 from rich.live import Live
+from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 
@@ -447,6 +449,9 @@ def _run_sync(
             except KeyboardInterrupt:
                 console.print("\n[yellow]Interrompido.[/yellow]")
                 raise typer.Exit(130) from None
+            except FetchError as e:
+                console.print(f"[red]Erro no download:[/red] {escape(str(e))}")
+                raise typer.Exit(1) from None
 
     for p in paths:
         console.print(f"[green]Gravado:[/green] {p}")

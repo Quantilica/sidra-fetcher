@@ -17,7 +17,8 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
-from quantilica.core.http import AsyncHttpClient, HttpClient
+from quantilica.core.exceptions import FetchError
+from quantilica.core.http import AsyncHttpClient, HttpClient, HttpStatusError
 from quantilica.core.logging import log_step
 
 from . import logger
@@ -49,6 +50,45 @@ from .download import (
     plan_agregado_download,
 )
 from .reader import read_periodos
+
+
+class SidraLimitError(FetchError):
+    """A API SIDRA recusou a consulta por exceder o limite de valores.
+
+    Levantada quando ``/values`` responde HTTP 400 com a mensagem
+    ``"... excedeu o limite: N"``. Indica um plano de download desalinhado com
+    o limite atual da API (``SIDRA_API_VALUES_LIMIT``) ou uma URL montada à mão
+    grande demais.
+    """
+
+
+def _corpo_erro(exc: HttpStatusError) -> str:
+    """Texto do corpo da resposta de erro, quando disponível (até 300 chars)."""
+    response = getattr(exc.__cause__, "response", None)
+    if response is None:
+        return ""
+    try:
+        return response.text.strip()[:300]
+    except Exception:  # corpo não lido/stream — sem detalhe extra
+        return ""
+
+
+def _traduzir_erro_http(url: str, exc: HttpStatusError) -> FetchError:
+    """Converte um ``HttpStatusError`` do SIDRA numa ``FetchError`` legível.
+
+    A API devolve o motivo da recusa em texto puro no corpo (ex.:
+    ``"Quantidade de valores solicitados: 55710 excedeu o limite: 50000"``),
+    que o ``HttpStatusError`` genérico descarta.
+    """
+    corpo = _corpo_erro(exc)
+    if exc.status_code == 400 and "excedeu o limite" in corpo:
+        return SidraLimitError(
+            f"A API SIDRA recusou a consulta por exceder o limite de valores "
+            f"por requisição ({corpo}). Restrinja a seleção (--periodos, "
+            f"--niveis, --variaveis) ou atualize o sidra-fetcher. URL: {url}"
+        )
+    detalhe = f": {corpo}" if corpo else ""
+    return FetchError(f"HTTP {exc.status_code} do SIDRA{detalhe} (URL: {url})")
 
 
 class SidraClient:
@@ -87,8 +127,16 @@ class SidraClient:
 
         Returns:
             Any: The JSON response parsed as a Python object.
+
+        Raises:
+            SidraLimitError: If the API rejects the query for exceeding the
+                values-per-request limit (HTTP 400).
+            FetchError: For other HTTP error statuses, with the API message.
         """
-        return self.client.get_json(url)
+        try:
+            return self.client.get_json(url)
+        except HttpStatusError as exc:
+            raise _traduzir_erro_http(url, exc) from exc
 
     def get_indice_pesquisas_agregados(self) -> list[IndicePesquisaAgregados]:
         """Fetch the index of agregados grouped by pesquisa.
@@ -392,8 +440,16 @@ class AsyncSidraClient:
 
         Returns:
             Any: The JSON response parsed as a Python object.
+
+        Raises:
+            SidraLimitError: If the API rejects the query for exceeding the
+                values-per-request limit (HTTP 400).
+            FetchError: For other HTTP error statuses, with the API message.
         """
-        return await self.client.get_json(url)
+        try:
+            return await self.client.get_json(url)
+        except HttpStatusError as exc:
+            raise _traduzir_erro_http(url, exc) from exc
 
     async def get_indice_pesquisas_agregados(
         self,

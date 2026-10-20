@@ -10,6 +10,7 @@ import logging
 import sys
 from pathlib import Path
 
+from quantilica.core.exceptions import FetchError
 from quantilica.core.logging import configure_cli_logging
 
 from sidra_fetcher import __version__
@@ -223,6 +224,9 @@ def handle_download(args: argparse.Namespace):
                 on_chunk_done=on_chunk_done,
                 **filtros,
             )
+        except FetchError as e:
+            print(f"Erro no download: {e}", file=sys.stderr)
+            sys.exit(1)
         finally:
             for pbar in level_pbars.values():
                 pbar.close()

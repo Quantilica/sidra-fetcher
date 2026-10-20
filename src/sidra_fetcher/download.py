@@ -6,7 +6,7 @@
 Este módulo planeja (chunking) e executa o download de TODOS os dados de uma
 tabela SIDRA (endpoint `/values`) a partir de um único ``agregado_id``,
 dividindo a seleção completa em requisições que nunca excedem
-``SIDRA_API_VALUES_LIMIT`` (100.000 valores). Ao contrário do ``sidra-sql``
+``SIDRA_API_VALUES_LIMIT`` (50.000 valores). Ao contrário do ``sidra-sql``
 (que assume que cada período isolado já cabe no limite — garantido
 manualmente por quem escreve o pipeline), este módulo descobre e divide
 automaticamente, priorizando nesta ordem: período -> lote de localidades ->

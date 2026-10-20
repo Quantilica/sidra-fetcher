@@ -19,11 +19,13 @@ from typing import Any
 
 BASE_URL = "https://apisidra.ibge.gov.br/values"
 
-# Limite documentado da API SIDRA por requisição ao endpoint /values
-# ("A consulta aos dados é limitada a 100.000 valores." —
-# https://apisidra.ibge.gov.br/home/ajuda). O total de valores de uma
-# consulta é o produto das quantidades selecionadas em cada dimensão.
-SIDRA_API_VALUES_LIMIT = 100_000
+# Limite efetivo da API SIDRA por requisição ao endpoint /values. A ajuda
+# (https://apisidra.ibge.gov.br/home/ajuda) ainda cita 100.000 valores, mas a
+# API passou a rejeitar com HTTP 400 ("Quantidade de valores solicitados:
+# 50139 excedeu o limite: 50000") qualquer consulta acima de 50.000 valores
+# (verificado em 2026-10-20). O total de valores de uma consulta é o produto
+# das quantidades selecionadas em cada dimensão.
+SIDRA_API_VALUES_LIMIT = 50_000
 
 
 class Formato(Enum):
