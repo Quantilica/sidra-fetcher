@@ -533,7 +533,7 @@ def _download_nivel(
             temp_path.unlink()
 
     manifest = DownloadManifest.from_digest(
-        source_id="ibge",
+        source_id="sidra",
         dataset_id=f"{agregado_id}:{nivel}",
         url=first_url,
         sha256=digest.hexdigest(),
@@ -605,6 +605,8 @@ def download_agregado_dados(
         grupos.setdefault(chunk.nivel_territorial, []).append(chunk)
 
     output_path = Path(output_dir)
+    if output_path.name != str(agregado_id):
+        output_path = output_path / "agregados" / str(agregado_id)
     output_path.mkdir(parents=True, exist_ok=True)
 
     paths: list[Path] = []

@@ -501,7 +501,7 @@ class TestClientDownload(unittest.TestCase):
             manifest_path = Path(str(data_path) + ".manifest.json")
             self.assertTrue(manifest_path.exists())
             manifest = json.loads(manifest_path.read_text())
-            self.assertEqual(manifest["source_id"], "ibge")
+            self.assertEqual(manifest["source_id"], "sidra")
             self.assertEqual(manifest["dataset_id"], f"{agregado.id}:N1")
             self.assertEqual(manifest["size_bytes"], len(data_path.read_bytes()))
 

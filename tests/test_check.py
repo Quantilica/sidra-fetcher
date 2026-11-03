@@ -99,6 +99,18 @@ def test_check_nivel_desatualizado_baixa(tmp_path: Path) -> None:
     assert por_nivel["N3"] == ("download", "remote-newer")
 
 
+def test_check_nested_agregado_path(tmp_path: Path) -> None:
+    """NDJSON gravado sob agregados/{id}/dados_{nivel}.ndjson é reconhecido."""
+    nested = tmp_path / "agregados" / "1705" / "dados_N1.ndjson"
+    nested.parent.mkdir(parents=True, exist_ok=True)
+    nested.write_text("{}\n", encoding="utf-8")
+
+    veredictos, _ = check_agregado(_client_2niveis(), 1705, tmp_path, {})
+    por_nivel = {v["partition"]: (v["action"], v["reason"]) for v in veredictos}
+    assert por_nivel["N1"] == ("skip-up-to-date", "local-fresh")
+    assert por_nivel["N3"] == ("download", "not-present")
+
+
 def test_sync_e_download_produzem_mesmo_plano(monkeypatch, tmp_path: Path) -> None:
     """Alias depreciado delega ao sync (warning + mesmo comportamento)."""
     import sidra_fetcher.plugin as plugin_module

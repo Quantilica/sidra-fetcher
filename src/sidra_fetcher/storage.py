@@ -1,9 +1,12 @@
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
-from quantilica.core.storage import LocalStorage
+from quantilica.core.manifests import DownloadManifest, write_manifest_sidecar
+from quantilica.core.storage import BaseDataRepository
 
 
-class DataRepository:
+class DataRepository(BaseDataRepository):
     """Manages storage for IBGE/SIDRA metadata files using LocalStorage.
 
     Args:
@@ -11,7 +14,8 @@ class DataRepository:
     """
 
     def __init__(self, root: Path | str):
-        self.storage = LocalStorage(root)
+        super().__init__(root)
+        self.source_id = "sidra"
 
     def path_agregado(self, agregado_id: int | str) -> Path:
         """Return the path for a specific aggregate's JSON metadata.
@@ -45,3 +49,40 @@ class DataRepository:
         return self.storage.path_for(
             f"agregados/{agregado_id}/dados_{nivel_territorial}.ndjson"
         )
+
+    def write_manifest_for(
+        self,
+        path: Path,
+        *,
+        dataset_id: str,
+        url: str,
+        content: bytes | None = None,
+        sha256: str | None = None,
+        size_bytes: int | None = None,
+        metadata: Mapping[str, Any] | None = None,
+    ) -> Path:
+        """Gera e grava o manifesto sidecar para um arquivo do repositório."""
+        if content is not None:
+            manifest = DownloadManifest.from_content(
+                source_id=self.source_id,
+                dataset_id=dataset_id,
+                url=url,
+                content=content,
+                path=str(path.absolute()),
+                producer="sidra-fetcher",
+                metadata=metadata,
+            )
+        elif sha256 is not None and size_bytes is not None:
+            manifest = DownloadManifest.from_digest(
+                source_id=self.source_id,
+                dataset_id=dataset_id,
+                url=url,
+                sha256=sha256,
+                size_bytes=size_bytes,
+                path=str(path.absolute()),
+                producer="sidra-fetcher",
+                metadata=metadata,
+            )
+        else:
+            raise ValueError("Informe 'content' ou ('sha256' e 'size_bytes')")
+        return write_manifest_sidecar(path, manifest)

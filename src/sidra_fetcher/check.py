@@ -60,7 +60,16 @@ def check_agregado(
     veredictos: list[dict[str, Any]] = []
     for nivel in sorted(por_nivel):
         filename = f"dados_{nivel}.ndjson"
-        target = output / filename
+        nested = output / "agregados" / str(agregado_id) / filename
+        flat = output / filename
+        if nested.exists():
+            target = nested
+        elif flat.exists():
+            target = flat
+        elif output.name == str(agregado_id):
+            target = flat
+        else:
+            target = nested
         mods = [
             mod_por_periodo[pid] for pid in por_nivel[nivel] if pid in mod_por_periodo
         ]

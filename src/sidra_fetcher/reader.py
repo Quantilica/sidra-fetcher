@@ -582,7 +582,7 @@ def save_agregado(agregado: Agregado, path: str | Path) -> None:
 
     # Generate and save manifest
     manifest = DownloadManifest.from_content(
-        source_id="ibge",
+        source_id="sidra",
         dataset_id=str(agregado.id),
         url=agregado.url
         or f"https://servicodados.ibge.gov.br/api/v3/agregados/{agregado.id}",

@@ -89,8 +89,12 @@ def test_save_load_roundtrip_writes_manifest(tmp_path: Path):
 
     save_agregado(agregado, path)
 
-    assert path.exists()
-    assert path.with_suffix(path.suffix + ".manifest.json").exists()
+    manifest_p = path.with_suffix(path.suffix + ".manifest.json")
+    assert manifest_p.exists()
+    import json
+
+    manifest_data = json.loads(manifest_p.read_text(encoding="utf-8"))
+    assert manifest_data["source_id"] == "sidra"
     assert load_agregado(path) == agregado
 
 
