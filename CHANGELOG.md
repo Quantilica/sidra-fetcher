@@ -5,6 +5,19 @@ Todas as mudanças notáveis deste projeto serão documentadas neste arquivo.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Adicionado
+- `DataRepository.path_for_entry`: caminho de destino de uma entrada no layout fixo do SIDRA (`agregados/agregado_<id>.json` e `agregados/<id>/dados_<nivel>.ndjson`); o repositório passa a herdar `BaseDataRepository` e ganha `write_manifest_for`.
+
+### Alterado
+- Exige `quantilica-core>=0.16.0` (antes `>=0.10.0`), que traz `path_for_entry` e `FreshnessPolicy`.
+- O plugin declara a política de frescor `REMOTE_ONLY`: a API JSON não tem validadores HEAD/ETag confiáveis, então a frescura é decidida pelo conteúdo, sem sondagem remota.
+- Os manifests passam a registrar `source_id` `sidra` (antes `ibge`); o download grava em `agregados/<id>/` e o `check` procura o arquivo nesse layout e no layout plano antigo.
+
+### Corrigido
+- Se o `quantilica-core` estiver ausente ou quebrado, o CLI mostra como reinstalar em vez de um erro de import.
+
 ## [0.10.8] - 2026-10-20
 
 ### Corrigido
