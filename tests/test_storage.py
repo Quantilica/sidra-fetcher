@@ -42,3 +42,12 @@ def test_data_repository_write_manifest(tmp_path: Path) -> None:
     assert payload["source_id"] == "sidra"
     assert payload["dataset_id"] == "1705:N1"
     assert payload["size_bytes"] == len(content)
+
+
+def test_path_for_entry_maps_to_existing_layout(tmp_path: Path) -> None:
+    repo = DataRepository(tmp_path)
+
+    assert repo.path_for_entry({"id": 1705}) == repo.path_agregado(1705)
+    assert repo.path_for_entry(
+        {"id": 1705, "nivel_territorial": "N1"}
+    ) == repo.path_dados(1705, "N1")

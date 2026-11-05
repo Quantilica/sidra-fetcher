@@ -1,6 +1,7 @@
+import datetime as dt
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from quantilica.core.manifests import DownloadManifest, write_manifest_sidecar
 from quantilica.core.storage import BaseDataRepository
@@ -16,6 +17,39 @@ class DataRepository(BaseDataRepository):
     def __init__(self, root: Path | str):
         super().__init__(root)
         self.source_id = "sidra"
+
+    def path_for_entry(
+        self,
+        entry: Mapping[str, Any],
+        *,
+        last_modified: dt.date | dt.datetime | None = None,
+        precision: Literal["date", "datetime"] = "date",
+        subdir_by_year: bool = False,
+    ) -> Path:
+        """Return the destination path of an entry in the SIDRA layout.
+
+        Overrides ``BaseDataRepository.path_for_entry``: the SIDRA layout is a
+        fixed contract (``agregados/agregado_<id>.json`` and
+        ``agregados/<id>/dados_<nivel>.ndjson``), without timestamped names or
+        partition tokens, so ``last_modified``, ``precision`` and
+        ``subdir_by_year`` are accepted for signature compatibility and ignored.
+
+        Args:
+            entry (Mapping[str, Any]): Entry with the aggregate ``id`` and,
+                optionally, the ``nivel_territorial`` of a data file.
+            last_modified (dt.date | dt.datetime | None): Ignored.
+            precision (Literal["date", "datetime"]): Ignored.
+            subdir_by_year (bool): Ignored.
+
+        Returns:
+            Path: The aggregate metadata path, or the data path when the entry
+                carries a ``nivel_territorial``.
+        """
+        agregado_id = entry["id"]
+        nivel = entry.get("nivel_territorial")
+        if nivel:
+            return self.path_dados(agregado_id, str(nivel))
+        return self.path_agregado(agregado_id)
 
     def path_agregado(self, agregado_id: int | str) -> Path:
         """Return the path for a specific aggregate's JSON metadata.
