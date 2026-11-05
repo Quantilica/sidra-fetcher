@@ -10,8 +10,15 @@ import logging
 import sys
 from pathlib import Path
 
-from quantilica.core.exceptions import FetchError
-from quantilica.core.logging import configure_cli_logging
+try:
+    from quantilica.core.exceptions import FetchError
+    from quantilica.core.logging import configure_cli_logging
+except ImportError as exc:  # quantilica-core ausente ou instalação quebrada
+    raise ImportError(
+        "sidra-fetcher requer 'quantilica-core'. "
+        'Reinstale via "quantilica install sidra" (ou "uv add sidra-fetcher"). '
+        f"Detalhe: {exc}"
+    ) from exc
 
 from sidra_fetcher import __version__
 from sidra_fetcher.download import describe_download_plan

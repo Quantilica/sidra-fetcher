@@ -19,6 +19,7 @@ from quantilica.cli.ui import (
     setup_rich_logging,
 )
 from quantilica.core.exceptions import FetchError
+from quantilica.core.sync import FreshnessPolicy
 from rich.console import Group
 from rich.live import Live
 from rich.markup import escape
@@ -75,6 +76,8 @@ fetcher_app = SidraFetcherApp(
     list_datasets=sidra_list_datasets,
     path_builder=sidra_path_builder,
     default_output=_DEFAULT_OUTPUT,
+    # API JSON sem HEAD/ETag confiável: sem sondagem remota (F3).
+    freshness_policy=FreshnessPolicy.REMOTE_ONLY,
 )
 
 app = fetcher_app.app
