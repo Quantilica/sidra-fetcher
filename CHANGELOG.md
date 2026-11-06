@@ -7,6 +7,8 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [0.11.0] - 2026-11-05
+
 ### Adicionado
 - `DataRepository.path_for_entry`: caminho de destino de uma entrada no layout fixo do SIDRA (`agregados/agregado_<id>.json` e `agregados/<id>/dados_<nivel>.ndjson`); o repositório passa a herdar `BaseDataRepository` e ganha `write_manifest_for`.
 
