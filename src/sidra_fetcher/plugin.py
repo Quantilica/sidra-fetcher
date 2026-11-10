@@ -19,6 +19,7 @@ from quantilica.cli.ui import (
     setup_rich_logging,
 )
 from quantilica.core.exceptions import FetchError
+from quantilica.core.registry import FetcherInfo
 from quantilica.core.sync import FreshnessPolicy
 from rich.console import Group
 from rich.live import Live
@@ -71,6 +72,14 @@ def sidra_path_builder(output_dir: Path, entry: dict, last_modified) -> Path:
 fetcher_app = SidraFetcherApp(
     name="sidra-fetcher",
     help="Interface para as APIs SIDRA/Agregados do IBGE.",
+    info=FetcherInfo(
+        id="sidra",
+        nome="IBGE - SIDRA e Agregados",
+        orgao="Instituto Brasileiro de Geografia e Estatística (IBGE)",
+        homepage="https://www.ibge.gov.br/",
+        cadencia="monthly",
+        dominio="macroeconomia",
+    ),
     groups_dict={},
     aliases_dict={},
     list_datasets=sidra_list_datasets,
