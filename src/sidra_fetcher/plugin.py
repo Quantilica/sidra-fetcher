@@ -76,6 +76,10 @@ fetcher_app = SidraFetcherApp(
         id="sidra",
         nome="IBGE - SIDRA e Agregados",
         orgao="Instituto Brasileiro de Geografia e Estatística (IBGE)",
+        licenca=(
+            "Sem licença declarada; dados públicos pela Lei 12.527/2011 (LAI) "
+            "e Decreto 8.777/2016"
+        ),
         homepage="https://www.ibge.gov.br/",
         cadencia="monthly",
         dominio="macroeconomia",
