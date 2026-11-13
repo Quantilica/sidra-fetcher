@@ -74,6 +74,7 @@ fetcher_app = SidraFetcherApp(
     help="Interface para as APIs SIDRA/Agregados do IBGE.",
     info=FetcherInfo(
         id="sidra",
+        aliases=("ibge",),
         nome="IBGE - SIDRA e Agregados",
         orgao="Instituto Brasileiro de Geografia e Estatística (IBGE)",
         licenca=(

@@ -8,6 +8,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- `ibge` como apelido do id `sidra` no registro de fetchers: a fonte IBGE do hub do portal passa a receber órgão e licença.
 - O fetcher declara os fatos da fonte (`FetcherInfo`: id canônico, apelidos, órgão, licença, página e cadência) para o registro de fetchers da Quantilica.
 
 ### Alterado
