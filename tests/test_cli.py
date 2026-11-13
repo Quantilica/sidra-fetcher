@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import datetime as dt
 
-from sidra_fetcher.agregados import Periodo
-from sidra_fetcher.cli import get_parser, main
+from ibge_sidra_fetcher.agregados import Periodo
+from ibge_sidra_fetcher.cli import get_parser, main
 
 
 class _FakeClient:
@@ -33,7 +33,7 @@ class _FakeClient:
 
 def test_periods_via_cli_main_imprime_id_e_modificacao(monkeypatch, capsys) -> None:
     """`periods` usa só atributos de `Periodo` (não `nome`)."""
-    import sidra_fetcher.cli as cli
+    import ibge_sidra_fetcher.cli as cli
 
     monkeypatch.setattr(cli, "SidraClient", _FakeClient)
     main(["periods", "1737"])

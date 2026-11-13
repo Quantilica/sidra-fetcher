@@ -4,7 +4,7 @@
 """Utilities to compute statistics and size estimates for agregados.
 
 This module provides small helper functions that operate on an
-`:class:`Agregado` object (from ``sidra_fetcher.api.agregados``) and
+`:class:`Agregado` object (from ``ibge_sidra_fetcher.api.agregados``) and
 return useful summaries used for planning downloads or analysing the
 data shape. Available functions include:
 

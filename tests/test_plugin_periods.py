@@ -9,8 +9,8 @@ import datetime as dt
 
 from typer.testing import CliRunner
 
-from sidra_fetcher import plugin
-from sidra_fetcher.agregados import Periodo
+from ibge_sidra_fetcher import plugin
+from ibge_sidra_fetcher.agregados import Periodo
 
 
 class _FakeClient:

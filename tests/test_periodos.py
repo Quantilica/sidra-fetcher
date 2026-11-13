@@ -4,8 +4,8 @@
 import datetime as dt
 import unittest
 
-from sidra_fetcher.agregados import Periodo
-from sidra_fetcher.periodos import (
+from ibge_sidra_fetcher.agregados import Periodo
+from ibge_sidra_fetcher.periodos import (
     FREQUENCIA_ANUAL,
     FREQUENCIA_MENSAL,
     FREQUENCIA_PLURIANUAL,
@@ -16,7 +16,7 @@ from sidra_fetcher.periodos import (
     parse_date,
     parse_period,
 )
-from sidra_fetcher.reader import read_periodos
+from ibge_sidra_fetcher.reader import read_periodos
 
 
 class TestPeriodoParsing(unittest.TestCase):

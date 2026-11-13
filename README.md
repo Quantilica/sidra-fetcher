@@ -1,4 +1,4 @@
-# sidra-fetcher: Cliente Python para a API do IBGE/SIDRA
+# ibge-sidra-fetcher: Cliente Python para a API do IBGE/SIDRA
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square) ![Python](https://img.shields.io/badge/python-3.13+-blue.svg?style=flat-square)
 

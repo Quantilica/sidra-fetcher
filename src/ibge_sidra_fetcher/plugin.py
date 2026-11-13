@@ -27,10 +27,10 @@ from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 
-from sidra_fetcher.check import check_agregado
-from sidra_fetcher.cli import _parse_classificacoes, _parse_lista
-from sidra_fetcher.download import describe_download_plan
-from sidra_fetcher.fetcher import SidraClient
+from ibge_sidra_fetcher.check import check_agregado
+from ibge_sidra_fetcher.cli import _parse_classificacoes, _parse_lista
+from ibge_sidra_fetcher.download import describe_download_plan
+from ibge_sidra_fetcher.fetcher import SidraClient
 
 
 class SidraFetcherApp(FetcherApp):
@@ -70,11 +70,11 @@ def sidra_path_builder(output_dir: Path, entry: dict, last_modified) -> Path:
 
 
 fetcher_app = SidraFetcherApp(
-    name="sidra-fetcher",
+    name="ibge-sidra-fetcher",
     help="Interface para as APIs SIDRA/Agregados do IBGE.",
     info=FetcherInfo(
-        id="sidra",
-        aliases=("ibge",),
+        id="ibge-sidra",
+        aliases=("sidra", "ibge"),
         nome="IBGE - SIDRA e Agregados",
         orgao="Instituto Brasileiro de Geografia e Estatística (IBGE)",
         licenca=(
@@ -90,6 +90,8 @@ fetcher_app = SidraFetcherApp(
     list_datasets=sidra_list_datasets,
     path_builder=sidra_path_builder,
     default_output=_DEFAULT_OUTPUT,
+    # O lake continua em `sidra/`: o produto segue chamando-se SIDRA.
+    source_id="sidra",
     # API JSON sem HEAD/ETag confiável: sem sondagem remota (F3).
     freshness_policy=FreshnessPolicy.REMOTE_ONLY,
 )
@@ -525,7 +527,7 @@ def cmd_check(
             raise typer.Exit(1) from e
     generated = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
     plan = CheckPlan(
-        fetcher="sidra-fetcher",
+        fetcher="ibge-sidra-fetcher",
         output_dir=str(output),
         generated_at=generated,
         items=[CheckPlanItem(**v) for v in veredictos],

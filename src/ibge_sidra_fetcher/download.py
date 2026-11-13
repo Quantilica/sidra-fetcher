@@ -17,7 +17,7 @@ planejado e baixado separadamente — nunca combinado num único ``Parametro``.
 
 Typical usage:
 
-    >>> from sidra_fetcher.fetcher import SidraClient
+    >>> from ibge_sidra_fetcher.fetcher import SidraClient
     >>> with SidraClient() as client:
     ...     chunks = client.plan_dados_agregado(1705)
     ...     resumo = describe_download_plan(chunks)
@@ -539,7 +539,7 @@ def _download_nivel(
         sha256=digest.hexdigest(),
         size_bytes=tamanho,
         path=str(target.absolute()),
-        producer="sidra-fetcher",
+        producer="ibge-sidra-fetcher",
         metadata={"nivel_territorial": nivel, "n_requests": len(grupo)},
     )
     write_manifest_sidecar(target, manifest)
@@ -570,7 +570,7 @@ def download_agregado_dados(
     quando o download exige múltiplos requests). Grava atomicamente e produz
     um ``DownloadManifest`` (SHA-256, tamanho, URL de origem) ao lado de cada
     arquivo de dados, seguindo a mesma convenção de
-    :func:`sidra_fetcher.reader.save_agregado`.
+    :func:`ibge_sidra_fetcher.reader.save_agregado`.
 
     Args:
         client: Cliente já autenticado/configurado para fazer os requests.

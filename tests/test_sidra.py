@@ -3,7 +3,7 @@
 
 import unittest
 
-from sidra_fetcher.sidra import (
+from ibge_sidra_fetcher.sidra import (
     SIDRA_API_VALUES_LIMIT,
     Parametro,
     Precisao,

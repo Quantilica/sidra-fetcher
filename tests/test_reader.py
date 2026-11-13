@@ -6,7 +6,7 @@
 import datetime as dt
 from pathlib import Path
 
-from sidra_fetcher.agregados import (
+from ibge_sidra_fetcher.agregados import (
     Agregado,
     AgregadoNivelTerritorial,
     Categoria,
@@ -19,7 +19,7 @@ from sidra_fetcher.agregados import (
     Pesquisa,
     Variavel,
 )
-from sidra_fetcher.reader import load_agregado, save_agregado
+from ibge_sidra_fetcher.reader import load_agregado, save_agregado
 
 
 def _sample_agregado() -> Agregado:

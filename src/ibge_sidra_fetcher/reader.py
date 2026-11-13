@@ -20,7 +20,7 @@ categories.
 
 Typical usage:
 
-    >>> from sidra_fetcher.reader import read_metadados, read_periodos
+    >>> from ibge_sidra_fetcher.reader import read_metadados, read_periodos
     >>> # Parse aggregate metadata
     >>> agregado = read_metadados(raw_metadata_dict)
     >>> # Parse periods
@@ -588,7 +588,7 @@ def save_agregado(agregado: Agregado, path: str | Path) -> None:
         or f"https://servicodados.ibge.gov.br/api/v3/agregados/{agregado.id}",
         content=content,
         path=str(path.absolute()),
-        producer="sidra-fetcher",
+        producer="ibge-sidra-fetcher",
         metadata={
             "nome": agregado.nome,
             "pesquisa": agregado.pesquisa.nome,

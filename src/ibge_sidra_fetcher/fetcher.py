@@ -6,7 +6,7 @@
 This module provides a small :class:`SidraClient` wrapper around
 ``httpx2`` used to download agregados indices, metadata, periods and
 localidades as Python dataclasses defined in
-``sidra_fetcher.api.agregados``.
+``ibge_sidra_fetcher.api.agregados``.
 
 The client includes retry logic on higher-level methods and returns
 typed structures suitable for further processing by the package.
@@ -85,7 +85,7 @@ def _traduzir_erro_http(url: str, exc: HttpStatusError) -> FetchError:
         return SidraLimitError(
             f"A API SIDRA recusou a consulta por exceder o limite de valores "
             f"por requisição ({corpo}). Restrinja a seleção (--periodos, "
-            f"--niveis, --variaveis) ou atualize o sidra-fetcher. URL: {url}"
+            f"--niveis, --variaveis) ou atualize o ibge-sidra-fetcher. URL: {url}"
         )
     detalhe = f": {corpo}" if corpo else ""
     return FetchError(f"HTTP {exc.status_code} do SIDRA{detalhe} (URL: {url})")
@@ -316,7 +316,7 @@ class SidraClient:
 
         Fetches full metadata (periods, localidades) via :meth:`get_agregado`
         when ``agregado`` is not provided. See
-        :func:`sidra_fetcher.download.plan_agregado_download` for the
+        :func:`ibge_sidra_fetcher.download.plan_agregado_download` for the
         accepted ``filtros`` (``niveis_territoriais``, ``variaveis``,
         ``periodos``, ``classificacoes``, ``formato``, ``decimais``, ``limit``).
 
@@ -387,7 +387,7 @@ class SidraClient:
     ) -> list[Path]:
         """Download all data of an agregado to NDJSON + manifest files.
 
-        See :func:`sidra_fetcher.download.download_agregado_dados` for the
+        See :func:`ibge_sidra_fetcher.download.download_agregado_dados` for the
         accepted keyword arguments.
 
         Args:
@@ -633,7 +633,7 @@ class AsyncSidraClient:
 
         Pure computation (no extra I/O beyond fetching metadata when
         ``agregado`` is not provided) — see
-        :func:`sidra_fetcher.download.plan_agregado_download` for the
+        :func:`ibge_sidra_fetcher.download.plan_agregado_download` for the
         accepted ``filtros``. Concurrent async execution of the plan is not
         implemented; use :class:`SidraClient` for downloads.
 

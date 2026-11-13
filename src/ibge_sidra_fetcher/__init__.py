@@ -12,7 +12,7 @@ from importlib.metadata import PackageNotFoundError, version
 from quantilica.core.logging import get_logger
 
 try:
-    __version__ = version("sidra-fetcher")
+    __version__ = version("ibge-sidra-fetcher")
 except PackageNotFoundError:
     __version__ = "0.0.0"
 

@@ -1,12 +1,12 @@
 # Copyright (c) 2026 Komesu, D.K.
 # Licensed under the MIT License.
 
-"""Testes para DataRepository do sidra-fetcher."""
+"""Testes para DataRepository do ibge-sidra-fetcher."""
 
 import json
 from pathlib import Path
 
-from sidra_fetcher.storage import DataRepository
+from ibge_sidra_fetcher.storage import DataRepository
 
 
 def test_data_repository_paths(tmp_path: Path) -> None:

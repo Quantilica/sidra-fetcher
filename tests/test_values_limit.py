@@ -18,10 +18,10 @@ from quantilica.core.http import HttpStatusError
 from test_download import _expand_chunk, _make_agregado
 from typer.testing import CliRunner
 
-from sidra_fetcher import plugin
-from sidra_fetcher.download import plan_agregado_download
-from sidra_fetcher.fetcher import SidraClient, SidraLimitError
-from sidra_fetcher.sidra import SIDRA_API_VALUES_LIMIT
+from ibge_sidra_fetcher import plugin
+from ibge_sidra_fetcher.download import plan_agregado_download
+from ibge_sidra_fetcher.fetcher import SidraClient, SidraLimitError
+from ibge_sidra_fetcher.sidra import SIDRA_API_VALUES_LIMIT
 
 _MSG_LIMITE = "Quantidade de valores solicitados: 55710 excedeu o limite: 50000"
 

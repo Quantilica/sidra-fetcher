@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, Mock, patch
 from quantilica.core.exceptions import FetchError
 from quantilica.core.http import RateLimiter
 
-from sidra_fetcher.agregados import (
+from ibge_sidra_fetcher.agregados import (
     Agregado,
     AgregadoNivelTerritorial,
     Categoria,
@@ -25,12 +25,12 @@ from sidra_fetcher.agregados import (
     Pesquisa,
     Variavel,
 )
-from sidra_fetcher.download import (
+from ibge_sidra_fetcher.download import (
     describe_download_plan,
     plan_agregado_download,
 )
-from sidra_fetcher.fetcher import SidraClient
-from sidra_fetcher.stats import calculate_aggregate
+from ibge_sidra_fetcher.fetcher import SidraClient
+from ibge_sidra_fetcher.stats import calculate_aggregate
 
 
 def _make_agregado(

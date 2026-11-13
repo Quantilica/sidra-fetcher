@@ -1,5 +1,5 @@
 [project]
-name = "sidra-fetcher"
+name = "ibge-sidra-fetcher"
 version = "0.11.0"
 description = "A Python package for fetching data from IBGE's SIDRA and Agregados APIs"
 readme = "README.md"
@@ -35,15 +35,15 @@ dependencies = [
 ]
 
 [project.scripts]
-sidra-fetcher = "sidra_fetcher.cli:main"
+ibge-sidra-fetcher = "ibge_sidra_fetcher.cli:main"
 
 [project.entry-points."quantilica.fetchers"]
-sidra = "sidra_fetcher.plugin:app"
+ibge-sidra = "ibge_sidra_fetcher.plugin:app"
 
 [project.urls]
-Homepage = "https://github.com/Quantilica/sidra-fetcher"
-Repository = "https://github.com/Quantilica/sidra-fetcher"
-Issues = "https://github.com/Quantilica/sidra-fetcher/issues"
+Homepage = "https://github.com/Quantilica/ibge-sidra-fetcher"
+Repository = "https://github.com/Quantilica/ibge-sidra-fetcher"
+Issues = "https://github.com/Quantilica/ibge-sidra-fetcher/issues"
 
 [dependency-groups]
 dev = [
@@ -75,7 +75,7 @@ select = ["E", "F", "I", "UP", "B"]
 "tests/test_fetcher.py" = ["E402"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sidra_fetcher"]
+packages = ["src/ibge_sidra_fetcher"]
 
 [build-system]
 requires = ["hatchling>=1.27"]
@@ -86,7 +86,7 @@ typeCheckingMode = "basic"
 include = ["src"]
 
 [tool.coverage.run]
-source = ["sidra_fetcher"]
+source = ["ibge_sidra_fetcher"]
 
 [tool.coverage.report]
 # Cobertura abaixo de 80%: relatório informativo (dispensa temporária, ver planning/notes/2026-11-04-ci-pyright-cobertura-dispensas.md).

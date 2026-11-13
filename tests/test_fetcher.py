@@ -5,9 +5,9 @@ import datetime as dt
 import unittest
 from unittest.mock import MagicMock, patch
 
-from sidra_fetcher.agregados import AcervoEnum
-from sidra_fetcher.fetcher import SidraClient
-from sidra_fetcher.periodos import (
+from ibge_sidra_fetcher.agregados import AcervoEnum
+from ibge_sidra_fetcher.fetcher import SidraClient
+from ibge_sidra_fetcher.periodos import (
     FREQUENCIA_ANUAL,
     FREQUENCIA_MENSAL,
     FREQUENCIA_NAO_RECONHECIDA,

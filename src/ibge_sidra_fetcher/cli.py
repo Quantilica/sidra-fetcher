@@ -1,7 +1,7 @@
 # Copyright (c) 2026 Komesu, D.K.
 # Licensed under the MIT License.
 
-"""Command line interface for sidra-fetcher (minimal dependencies)."""
+"""Command line interface for ibge-sidra-fetcher (minimal dependencies)."""
 
 from __future__ import annotations
 
@@ -15,14 +15,15 @@ try:
     from quantilica.core.logging import configure_cli_logging
 except ImportError as exc:  # quantilica-core ausente ou instalação quebrada
     raise ImportError(
-        "sidra-fetcher requer 'quantilica-core'. "
-        'Reinstale via "quantilica install sidra" (ou "uv add sidra-fetcher"). '
+        "ibge-sidra-fetcher requer 'quantilica-core'. "
+        'Reinstale via "quantilica install ibge-sidra" '
+        '(ou "uv add ibge-sidra-fetcher"). '
         f"Detalhe: {exc}"
     ) from exc
 
-from sidra_fetcher import __version__
-from sidra_fetcher.download import describe_download_plan
-from sidra_fetcher.fetcher import SidraClient
+from ibge_sidra_fetcher import __version__
+from ibge_sidra_fetcher.download import describe_download_plan
+from ibge_sidra_fetcher.fetcher import SidraClient
 
 
 def handle_list_pesquisas(args: argparse.Namespace):
@@ -251,7 +252,7 @@ def handle_check(args: argparse.Namespace):
     import datetime as _dt
     import json as _json
 
-    from sidra_fetcher.check import check_agregado
+    from ibge_sidra_fetcher.check import check_agregado
 
     filtros = {
         "niveis_territoriais": _parse_lista(args.niveis),
@@ -271,7 +272,7 @@ def handle_check(args: argparse.Namespace):
 
     if args.json:
         plano = {
-            "fetcher": "sidra-fetcher",
+            "fetcher": "ibge-sidra-fetcher",
             "output_dir": str(args.output),
             "generated_at": _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds"),
             "items": veredictos,
@@ -297,7 +298,7 @@ def get_parser() -> argparse.ArgumentParser:
         argparse.ArgumentParser: The configured argument parser.
     """
     parser = argparse.ArgumentParser(
-        prog="sidra-fetcher",
+        prog="ibge-sidra-fetcher",
         description="Interface para as APIs SIDRA/Agregados do IBGE.",
     )
     parser.add_argument(
@@ -428,7 +429,7 @@ def main(argv: list[str] | None = None) -> None:
     configure_cli_logging(verbose=args.verbose)
     if not args.verbose:
         logging.getLogger("quantilica.core").setLevel(logging.WARNING)
-        logging.getLogger("sidra_fetcher").setLevel(logging.WARNING)
+        logging.getLogger("ibge_sidra_fetcher").setLevel(logging.WARNING)
     try:
         args.func(args)
     except KeyboardInterrupt:

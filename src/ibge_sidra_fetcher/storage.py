@@ -103,7 +103,7 @@ class DataRepository(BaseDataRepository):
                 url=url,
                 content=content,
                 path=str(path.absolute()),
-                producer="sidra-fetcher",
+                producer="ibge-sidra-fetcher",
                 metadata=metadata,
             )
         elif sha256 is not None and size_bytes is not None:
@@ -114,7 +114,7 @@ class DataRepository(BaseDataRepository):
                 sha256=sha256,
                 size_bytes=size_bytes,
                 path=str(path.absolute()),
-                producer="sidra-fetcher",
+                producer="ibge-sidra-fetcher",
                 metadata=metadata,
             )
         else:

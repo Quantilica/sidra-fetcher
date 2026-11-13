@@ -4,7 +4,7 @@
 import unittest
 from unittest.mock import Mock
 
-from sidra_fetcher.agregados import (
+from ibge_sidra_fetcher.agregados import (
     Agregado,
     AgregadoNivelTerritorial,
     Categoria,
@@ -17,7 +17,7 @@ from sidra_fetcher.agregados import (
     Pesquisa,
     Variavel,
 )
-from sidra_fetcher.stats import (
+from ibge_sidra_fetcher.stats import (
     calculate_aggregate,
     estimate_values,
     get_n_dimensoes,

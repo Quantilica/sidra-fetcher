@@ -9,7 +9,7 @@ URL builder helpers to access the agregados API (index, metadata,
 periods, localidades and acervos).
 
 The dataclasses are intentionally minimal and used primarily as type
-containers for data downloaded by :class:`sidra_fetcher.fetcher.SidraClient`.
+containers for data downloaded by :class:`ibge_sidra_fetcher.fetcher.SidraClient`.
 """
 
 import datetime as dt

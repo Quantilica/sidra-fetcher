@@ -13,10 +13,10 @@ from types import SimpleNamespace
 
 from typer.testing import CliRunner
 
-from sidra_fetcher.agregados import Periodo
-from sidra_fetcher.check import check_agregado
-from sidra_fetcher.download import DownloadChunk
-from sidra_fetcher.plugin import app
+from ibge_sidra_fetcher.agregados import Periodo
+from ibge_sidra_fetcher.check import check_agregado
+from ibge_sidra_fetcher.download import DownloadChunk
+from ibge_sidra_fetcher.plugin import app
 
 runner = CliRunner()
 
@@ -113,7 +113,7 @@ def test_check_nested_agregado_path(tmp_path: Path) -> None:
 
 def test_sync_e_download_produzem_mesmo_plano(monkeypatch, tmp_path: Path) -> None:
     """Alias depreciado delega ao sync (warning + mesmo comportamento)."""
-    import sidra_fetcher.plugin as plugin_module
+    import ibge_sidra_fetcher.plugin as plugin_module
 
     client = _client_2niveis()
     monkeypatch.setattr(
@@ -153,7 +153,7 @@ class _NoNetClient:
 
 def test_sync_from_plan_restringe_niveis(monkeypatch, tmp_path: Path) -> None:
     """sync --from-plan baixa só níveis com ação download."""
-    import sidra_fetcher.plugin as plugin_module
+    import ibge_sidra_fetcher.plugin as plugin_module
 
     base = _client_2niveis()
     net = _NoNetClient(base)
@@ -161,7 +161,7 @@ def test_sync_from_plan_restringe_niveis(monkeypatch, tmp_path: Path) -> None:
 
     veredictos, _ = check_agregado(base, 1705, tmp_path, {})
     plano = {
-        "fetcher": "sidra-fetcher",
+        "fetcher": "ibge-sidra-fetcher",
         "output_dir": str(tmp_path),
         "generated_at": "2026-10-07T00:00:00+00:00",
         "items": [
@@ -183,7 +183,7 @@ def test_sync_from_plan_restringe_niveis(monkeypatch, tmp_path: Path) -> None:
 
 def test_sync_from_plan_rejeita_filtros_combinados(monkeypatch, tmp_path: Path) -> None:
     """--from-plan com filtros explícitos aborta com erro claro."""
-    import sidra_fetcher.plugin as plugin_module
+    import ibge_sidra_fetcher.plugin as plugin_module
 
     net = _NoNetClient(_client_2niveis())
     monkeypatch.setattr(plugin_module, "SidraClient", lambda *a, **k: net)
@@ -226,7 +226,7 @@ def test_sync_sem_id_e_sem_plano_aborta(tmp_path: Path) -> None:
 
 def test_check_json_tem_ids_completos(monkeypatch, tmp_path: Path) -> None:
     """check --json emite plano com ids sem truncamento."""
-    import sidra_fetcher.plugin as plugin_module
+    import ibge_sidra_fetcher.plugin as plugin_module
 
     net = _NoNetClient(_client_2niveis())
     monkeypatch.setattr(plugin_module, "SidraClient", lambda *a, **k: net)

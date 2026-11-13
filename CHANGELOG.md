@@ -7,11 +7,18 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Quebra (BREAKING)
+- **A distribuição passa de `sidra-fetcher` para `ibge-sidra-fetcher` e o módulo de `sidra_fetcher` para `ibge_sidra_fetcher`.** Não há módulo nem distribuição de compatibilidade: quem importa `sidra_fetcher` precisa trocar o import. Para migrar, `pip install ibge-sidra-fetcher` (ou `quantilica install ibge-sidra`) e `import ibge_sidra_fetcher`. As versões anteriores continuam disponíveis como `sidra-fetcher` (congeladas, até a 0.10.4 no PyPI).
+- O script de console passa a se chamar `ibge-sidra-fetcher`; o entry point `quantilica.fetchers` passa de `sidra` a `ibge-sidra`; o id do registro passa de `sidra` a `ibge-sidra`, com os apelidos `sidra` e `ibge`.
+- `producer` e `fetcher` gravados nos manifests e descritores novos passam a ser `ibge-sidra-fetcher`; os já gravados não são reescritos.
+- Não mudam: `source_id` `sidra` e o diretório `sidra/` do lake (`/data/sidra`), nem o vocabulário do produto SIDRA.
+
 ### Adicionado
-- `ibge` como apelido do id `sidra` no registro de fetchers: a fonte IBGE do hub do portal passa a receber órgão e licença.
+- `ibge` como apelido do id do registro de fetchers: a fonte IBGE do hub do portal passa a receber órgão e licença.
 - O fetcher declara os fatos da fonte (`FetcherInfo`: id canônico, apelidos, órgão, licença, página e cadência) para o registro de fetchers da Quantilica.
 
 ### Alterado
+- `[project.urls]` aponta para `Quantilica/ibge-sidra-fetcher`.
 - Requer `quantilica-core>=0.19.0` (e `quantilica-cli>=0.17.0` como host).
 - `FetcherInfo.licenca` passa a declarar a licença da fonte: Sem licença declarada; dados públicos pela Lei 12.527/2011 (LAI) e Decreto 8.777/2016.
 
