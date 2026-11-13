@@ -17,7 +17,8 @@ except ImportError as exc:  # quantilica-core ausente ou instalação quebrada
     raise ImportError(
         "ibge-sidra-fetcher requer 'quantilica-core'. "
         'Reinstale via "quantilica install ibge-sidra" '
-        '(ou "uv add ibge-sidra-fetcher"). '
+        '(ou "uv add ibge-sidra-fetcher '
+        '--index https://index.quantilica.com/simple/"). '
         f"Detalhe: {exc}"
     ) from exc
 
