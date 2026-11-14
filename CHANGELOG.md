@@ -7,6 +7,8 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+## [0.12.0] - 2026-11-13
+
 ### Quebra (BREAKING)
 - **A distribuição passa de `sidra-fetcher` para `ibge-sidra-fetcher` e o módulo de `sidra_fetcher` para `ibge_sidra_fetcher`.** Não há módulo nem distribuição de compatibilidade: quem importa `sidra_fetcher` precisa trocar o import. Para migrar, `pip install ibge-sidra-fetcher` (ou `quantilica install ibge-sidra`) e `import ibge_sidra_fetcher`. As versões anteriores continuam disponíveis como `sidra-fetcher` (congeladas: o índice da Quantilica guarda da 0.10.5 à 0.11.0; a 0.10.4 e as anteriores estão só no PyPI). Quem tem o `sidra-fetcher` instalado migra com `quantilica install ibge-sidra` (o `quantilica-cli` troca a distribuição: instala a nova e remove a antiga) ou, à mão, com `uv pip uninstall sidra-fetcher && uv pip install ibge-sidra-fetcher --index https://index.quantilica.com/simple/`.
 - O script de console passa a se chamar `ibge-sidra-fetcher`; o entry point `quantilica.fetchers` passa de `sidra` a `ibge-sidra`; o id do registro passa de `sidra` a `ibge-sidra`, com os apelidos `sidra` e `ibge`.
